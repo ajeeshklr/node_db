@@ -51,7 +51,7 @@
                 "db": "mysql",
                 "name": "test",
                 "username" : "root",
-                "password": "v#idhya247",
+                "password": "test123",
                 "type": "mysql",
                 "host": "localhost"
             },
