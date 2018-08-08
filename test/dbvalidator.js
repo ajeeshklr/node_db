@@ -25,7 +25,7 @@ let StoreManager = require('../data/storemanager').StoreManager;
 
 
 
-container.insert = function (callback) {
+let insert = function (callback) {
 
     let UserModel = require("../model/usermodel");
 
@@ -61,11 +61,14 @@ container.insert = function (callback) {
 };
 
 
-container.find1 = function (callback) {
+let find1 = function (callback) {
 
     let criteria = {
         "filter": {
             "config.fields.name": "Ajeesh B Nair"
+        },
+        "clause" : {
+            "limit" : 1
         }
     }
 
@@ -82,7 +85,7 @@ container.find1 = function (callback) {
 };
 
 
-container.update = function (callback) {
+let update = function (callback) {
 
     let criteria = {
         "collection": "user",
@@ -90,7 +93,8 @@ container.update = function (callback) {
             "config.fields.name": "Ajeesh B Nair"
         },
         "clause": {
-            "multi": true
+            "multi": true,
+            "limit" : 1
         }
     };
 
@@ -137,7 +141,7 @@ container.update = function (callback) {
     // });
 };
 
-container.find2 = function (callback) {
+let find2 = function (callback) {
 
     let criteria = {
         "filter": {
@@ -166,9 +170,6 @@ container.find2 = function (callback) {
 
     let p = StoreManager.getInstance().get("user").find(criteria, null, false);
     p.then(res => {
-        // res.forEach(result => {
-        //     console.log(result);
-        // });
         callback(null, res);
     }).catch(err => {
         callback(err);
@@ -202,5 +203,10 @@ container.delete = function (callback) {
 
 };
 */
+
+container.insert = insert;
+// container.find1 = find1;
+// container.update = update;
+// container.find2 = find2;
 
 module.exports = container;

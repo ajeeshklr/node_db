@@ -21,7 +21,7 @@ helpers.loadModules("./test", modules, true, true); // Load all modules one by o
 
 let totalCount = 0;
 let succeeded = 0;
-let MAX_COUNT = 1000; // Use this for load testing the DB apis.
+let MAX_COUNT = 10000; // Use this for load testing the DB apis.
 
 function _executeTest(modules, index, callback) {
 
@@ -83,8 +83,12 @@ function init() {
         var mod = null;
 
         if (methods.length > 0) {
+            let startTime = Date.now();
             _executeTest(methods, 0, (s, f) => {
                 console.log("test completed.");
+                let endTime = Date.now();
+                let difference =  endTime - startTime ;
+                console.error("Total time took to execute test - " + difference + " msec.");
             });
         }
 

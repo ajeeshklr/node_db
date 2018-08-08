@@ -50,7 +50,7 @@
             "database": {
                 "db": "mysql",
                 "name": "test",
-                "username" : "root",
+                "username" : "demo",
                 "password": "test123",
                 "type": "mysql",
                 "host": "localhost"
@@ -64,6 +64,6 @@
         "path": "./app.js"
     },
     "defaults": {
-        "env": "test"
+        "env": "mysql"
     }
 }

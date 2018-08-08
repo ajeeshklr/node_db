@@ -184,7 +184,7 @@ let Query = class DBQuery {
             }
         }
 
-        console.error(selectQ);
+        // console.error(selectQ);
 
         return selectQ;
     };
@@ -195,18 +195,18 @@ let Query = class DBQuery {
      * @returns By default, returns an update query for SQL database.
      */
     toUpdate() {
-        if (!this._select || !this._select.set) {
+        if (!this._select) {
             throw new Error("Invalid update clause query.");
         }
 
         var sql = "UPDATE " + this._collection + " ";
-        let updateExpression = new QueryExpression(this._select.set);
-        sql += "SET " + updateExpression.toString();
+        let updateExpression = new QueryExpression(this._select);
+        sql += "SET " + updateExpression.toString(true);
         if (this._expression) {
-            sql += " WHERE " + this._expression.toString();
+            sql += " WHERE " + this._expression.toString(true);
         }
 
-        console.error(sql);
+       //  console.error(sql);
         return sql;
     };
 

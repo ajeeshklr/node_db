@@ -124,16 +124,13 @@ let MySQLDB = class MySQLDB extends AbstractDB {
             let query = dbq.toInsert();
 
             var _this = this;
-            console.log(query);
+         //   console.log(query);
 
             this._clientdb.query(query, (err, result) => {
 
                 if (err) {
                     reject(err);
                 } else {
-                    if (_this) {
-                        console.log(_this);
-                    }
                     if (result.affectedRows > 0) {
                         model.setId(result.insertId);
                     }
@@ -196,11 +193,15 @@ let MySQLDB = class MySQLDB extends AbstractDB {
                         let queryString = dbquery.toUpdate(); // Convert to query object.
                         this._clientdb.query(queryString, (err, result) => {
                             if (err) {
-                                console.log(err);
+                                // console.log(err);
                                 reject(err);
                             } else {
-                                console.log(result);
-                                resolve(result);
+                                // console.log(result);
+                                if (result.affectedRows > 0) {
+                                    resolve(result);
+                                } else {
+                                    reject(result);
+                                }
                             }
                         });
 
@@ -301,25 +302,25 @@ let MySQLDB = class MySQLDB extends AbstractDB {
                 this._clientdb.query(queryString, (err, result) => {
 
                     if (err) {
-                        console.error(err);
+                        // console.error(err);
                         reject(err);
                     } else {
                         let models = [];
                         let m = ModelManager.getInstance().get(config.model);
 
-                        for(var i = 0;i<result.length;i++){
+                        for (var i = 0; i < result.length; i++) {
                             let instance = new m();
                             let currentInstance = result[i];
                             instance.beginInit();
-                            instance.getFields().forEach(field=>{
-                                instance.set(field,currentInstance[field]);
+                            instance.getFields().forEach(field => {
+                                instance.set(field, currentInstance[field]);
                             })
                             instance.endInit();
                             instance.setId(currentInstance[instance.getIdField()]);
                             models.push(instance);
 
                         }
-                        console.error(result);
+                        // console.error(result);
                         resolve(models);
                     }
 
