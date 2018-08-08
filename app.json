@@ -1,0 +1,69 @@
+{
+    "stores": [{
+        "name": "user",
+        "path": "./stores/userstore.js"
+    }, {
+        "name" : "member",
+        "path" : "./stores/memberstore.js"
+    }],
+    "models" : [
+        {
+            "name" : "user",
+            "path" : "./model/usermodel.js"
+        }
+    ],
+    "config": {
+        "test": {
+            "database": {
+                "db": "mongo",
+                "name": "test",
+                "password": "password",
+                "type": "mongo",
+                "url": "mongodb://localhost:27017/"
+            },
+            "basePath": "./test/",
+            "js": "index.js"
+        },
+        "production": {
+            "database": {
+                "db": "mongo",
+                "name": "test",
+                "password": "password",
+                "type": "mongo",
+                "url": "mongodb://localhost:27017/"
+            },
+            "basePath": "./main/",
+            "js": "index.js"
+        },
+        "staging": {
+            "database": {
+                "db": "mongo",
+                "name": "test",
+                "password": "password",
+                "type": "mongo",
+                "url": "mongodb://localhost:27017/"
+            },
+            "basePath": "./main/",
+            "js": "index.js"
+        },
+        "mysql":{
+            "database": {
+                "db": "mysql",
+                "name": "test",
+                "username" : "root",
+                "password": "v#idhya247",
+                "type": "mysql",
+                "host": "localhost"
+            },
+            "basePath": "./test/",
+            "js": "index.js"
+        }
+
+    },
+    "js": {
+        "path": "./app.js"
+    },
+    "defaults": {
+        "env": "test"
+    }
+}
