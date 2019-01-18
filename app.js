@@ -98,6 +98,8 @@ if (typeof (config.getConfig()) == "object") {
     runnable.init();
 }
 
+// To test if it gets committed to correct account.
+
 /*
 const main = require('./main');
 //#endregion
