@@ -90,7 +90,7 @@ Container.convertToDeleteQuery = function (model) {
         deleteConfig = model;
     }
 
-    let query = new DbQuery("users", deleteq, null, null);
+    let query = new DbQuery("users", deleteConfig, null, null);
     let queryString = query.toDelete();
     query = null;
     deleteConfig = null;
