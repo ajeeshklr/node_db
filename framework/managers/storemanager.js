@@ -11,6 +11,7 @@
  * Singleton instance for the store manager.
  */
 let _singletonInstance = null;
+let DbManager = require('./dbmanager').DbManager;
 
 let StoreManager = class StoreManager {
     constructor() {
@@ -18,7 +19,7 @@ let StoreManager = class StoreManager {
             throw new Error("Could not instantiate a singleton class. Use the static methods instead.");
         }
 
-        console.log('Initializing store manager.');
+        console.error('Initializing store manager.');
         this._stores = {}; // List of stores in the StoreManager.
     };
 
@@ -64,7 +65,10 @@ let StoreManager = class StoreManager {
                     let storePath = path.resolve(processPath, storesCfg.path);
                     console.info("Store path - " + storePath);
                     let store = require(storePath).Store;
-                    this._stores[storesCfg.name] = new store();
+                    var storeInstance = new store();
+                    storeInstance.database = DbManager.getInstance().getDatabase();
+                    this._stores[storesCfg.name] = storeInstance;
+
                 } catch (err) {
                     console.error(err);
                 }

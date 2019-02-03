@@ -10,9 +10,7 @@
 
 
 
-let DBFactory = require('./factory/dbfactory').DBFactory;
-let AbstractDB = require('./factory/abstractdb').AbstractDB;
-let IDBRecord = require('./factory/idbrecord').IDBRecord;
+let DBFactory = require('../core/factory/dbfactory').DBFactory;
 
 let _singletonInstance = null;
 
@@ -22,8 +20,8 @@ let DbManager = class DbManager {
         if (!DbManager._init) {
             throw new Error("Instance of singleton can't be created.");
         }
-        
-        console.log('Instantiating DB manager. !!!');
+
+        console.error('Instantiating DB manager. !!!');
     };
 
     /**
@@ -39,6 +37,7 @@ let DbManager = class DbManager {
      */
     configure(config, callback) {
 
+        var _this = this;
         let p = new Promise((resolve, reject) => {
 
             if (null == config) {
@@ -48,7 +47,7 @@ let DbManager = class DbManager {
 
             DBFactory.getInstnace().getDatabase(config)
                 .then(db => {
-                    this.database = db;
+                    _this.database = db;
                     resolve(db);
                 }).catch(err => {
                     reject(err);
@@ -68,14 +67,19 @@ let DbManager = class DbManager {
     };
 
     openDatabase(callback) {
+        var _this = this;
+
         let p = new Promise((resolve, reject) => {
-            if (null == this.database) {
-                reject({ 'Error Code': 400, 'Error Text': 'Database is not configured. Call configure to configure database.' });
+            if (null == _this.database) {
+                reject({
+                    'Error Code': 400,
+                    'Error Text': 'Database is not configured. Call configure to configure database.'
+                });
             } else {
-                this.database.open()
+                _this.database.open()
                     .then(res => {
-                       // console.log(res);
-                        resolve(this.database);
+                        // console.log(res);
+                        resolve(_this.database);
                     }).catch(err => {
                         reject(err);
                     })
@@ -97,11 +101,13 @@ let DbManager = class DbManager {
 
     closeDatabase(callback) {
 
+        var _this = this;
+
         let p = new Promise((resolve, reject) => {
-            if (null == this.database) {
+            if (null == _this.database) {
                 reject('Database is null or not initialized yet.!!');
             } else {
-                this.database.closeDatabase()
+                _this.database.closeDatabase()
                     .then(res => {
                         resolve(res);
                     }).catch(err => {
@@ -122,18 +128,22 @@ let DbManager = class DbManager {
     };
 
     disposeDatabase(callback) {
+        var _this = this;
 
         let p = new Promise((resolve, reject) => {
-            if (this.database != null) {
-                this.database.dispose()
+            if (_this.database != null) {
+                _this.database.dispose()
                     .then(res => {
-                        this.database = null;
+                        _this.database = null;
                         resolve(err, res);
                     }).catch(err => {
                         reject(err);
                     });
             } else {
-                reject({ 'Error': 400, 'Error Text': 'Invalid database.' });
+                reject({
+                    'Error': 400,
+                    'Error Text': 'Invalid database.'
+                });
             }
         });
 
@@ -151,43 +161,13 @@ let DbManager = class DbManager {
     static getInstance() {
         if (null == _singletonInstance) {
             DbManager._init = true; // A crude way to initialize DBManager singleton.
-            _singletonInstance = new DbManager();  // This shall not create any issues now.
+            _singletonInstance = new DbManager(); // This shall not create any issues now.
             DbManager._init = false;
         }
 
         return _singletonInstance;
     };
 
-    /**
-     * Execute DB operation on the DB underlying.
-     */
-    execute(dboperation, callback) {
-
-        if (!this.database) {
-            if (callback) {
-                callback(400, 'Invalid database or database is not initialized.');
-            } else {
-                return new Promise((resolve, reject) => {
-                    reject('Invalid database or databse is not initialized.');
-                });
-            }
-        } else {
-            if (this.database.state != AbstractDB.DB_STATES.DB_INVALID) {
-                if (callback) {
-                    this.database.execute(dboperation, callback);
-                } else {
-                    return new Promise((resolve, reject) => {
-                        this.database.execute(dboperation)
-                            .then(res => {
-                                resolve(res);
-                            }).catch(err => {
-                                reject(err);
-                            });
-                    }); // return new Promise
-                } // else 
-            } // this.database.state != AbstractDB.DB_STATES.DB_INVALID
-        } // else
-    };  // execute
 
     getDatabase() {
         return this.database;

@@ -7,7 +7,7 @@ let Query = class DBQuery {
 
     /**
      * @param {string} collection Name of the collection on which the selection needs to be performed. This is similar to the table in SQL.
-     * @param {object} select Select statement. Pass null if all fields needs to be selected
+     * @param {object} select Select statement for select or update. Pass null if all fields needs to be selected. Used in where clause for delete. If null, all db entries will be removed. 
      * @param {object} expressionObject Expression object, for additional clauses for filter criteria. This is analogous to the WHERE clause in SQL query.
      * @param {object} clauses Additional clauses. Possible values are "Sort" order and "limit"
      * @description 
@@ -136,7 +136,7 @@ let Query = class DBQuery {
 
 
         if (this._expression) {
-            selectQ += " WHERE (" + this._expression.toString(true) + ")";
+            selectQ += " WHERE " + this._expression.toString(true) + "";
         }
 
         if (this._clauses) {
@@ -201,12 +201,12 @@ let Query = class DBQuery {
 
         var sql = "UPDATE " + this._collection + " ";
         let updateExpression = new QueryExpression(this._select);
-        sql += "SET " + updateExpression.toString(true);
+        sql += "SET " + updateExpression.toString(true, ",");
         if (this._expression) {
             sql += " WHERE " + this._expression.toString(true);
         }
 
-       //  console.error(sql);
+        //  console.error(sql);
         return sql;
     };
 
@@ -268,6 +268,13 @@ let Query = class DBQuery {
 
     toDelete() {
 
+        var criteria = this._select || this._expression;
+
+        var sql = "DELETE FROM " + this._collection + " ";
+        let deleteExpression = this._select ? new QueryExpression(criteria) : criteria;
+        sql += " WHERE " + deleteExpression.toString(true);
+
+        return sql;
     }
 };
 

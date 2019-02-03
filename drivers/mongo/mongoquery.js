@@ -1,8 +1,8 @@
 "use strict";
 
-let Query = require('../../dbquery').Query;
-let Expression = require('../../queryexpression').Expression;
-let QueryExpression = require('../../queryexpression').QueryExpression;
+let Query = require('../../framework/core/db/dbquery').Query;
+let Expression = require('../../framework/core/db/queryexpression').Expression;
+let QueryExpression = require('../../framework/core/db/queryexpression').QueryExpression;
 
 let OperatorMap = {
     "<": "$lt",
@@ -109,7 +109,7 @@ let MongoQuery = class MongoQuery extends Query {
         operands.forEach(element => {
 
             if (Object.prototype.toString.call(element) == "[object Array]") {
-                element = element[0];   // It could be an array also.
+                element = element[0]; // It could be an array also.
             }
 
             /* if (Object.prototype.toString.call(element) == "[object Array]") { */

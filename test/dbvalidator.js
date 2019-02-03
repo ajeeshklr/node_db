@@ -16,31 +16,32 @@ let container = {}; // Container to hold validators.
  */
 
 // Let's require the framework first.
-let DBManager = require('../data/dbmanager').DbManager;
-let DBOperation = require('../data/factory/dboperation').DBOperation;
-let DB_OP = require('../data/factory/dboperation').DB_OP;
+let DBManager = require('../framework/managers/dbmanager').DbManager;
+let DBOperation = require('../framework/core/db/dboperation').DBOperation;
+let DB_OP = require('../framework/core/db/dboperation').DB_OP;
 let config = require('../config').getConfig();
 let co = require('co');
-let StoreManager = require('../data/storemanager').StoreManager;
+let StoreManager = require('../framework/managers/storemanager').StoreManager;
 
 
 
-let insert = function (callback) {
+let insert = async function (callback) {
 
     let UserModel = require("../model/usermodel");
 
-    /*let userconfig = {
+    let userconfig = {
         "name": "Ajeesh B Nair",
         "age": 35,
-        "place": "Kalanjoor"
-    };*/
+        "place": "Kalanjoor",
+        "content": fileContent
+    };
 
-    var instance = new UserModel( /*userconfig*/ );
-    instance.beginInit();
-    instance.set('name', 'Ajeesh B Nair');
-    instance.set('age', 35);
-    instance.set('place', 'Kalanjoor');
-    instance.endInit();
+    var instance = new UserModel(userconfig);
+    // instance.beginInit();
+    // instance.set('name', 'Ajeesh B Nair');
+    // instance.set('age', 35);
+    // instance.set('place', 'Kalanjoor');
+    // instance.endInit();
 
     instance.on('add', (obj) => {
         instance.cleanup();
@@ -51,13 +52,19 @@ let insert = function (callback) {
         callback(message);
     });
     instance.save();
+
     /*
+
+    
     let p = StoreManager.getInstance().get("user").add(instance);
     p.then(res => {
         callback(null, res);
     }).catch(err => {
         callback(err);
     });*/
+
+    UserModel = null;
+
 };
 
 
@@ -67,8 +74,8 @@ let find1 = function (callback) {
         "filter": {
             "config.fields.name": "Ajeesh B Nair"
         },
-        "clause" : {
-            "limit" : 1
+        "clause": {
+            "limit": 1
         }
     }
 
@@ -94,7 +101,7 @@ let update = function (callback) {
         },
         "clause": {
             "multi": true,
-            "limit" : 1
+            "limit": 1
         }
     };
 

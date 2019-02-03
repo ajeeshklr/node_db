@@ -3,20 +3,19 @@
         "name": "user",
         "path": "./stores/userstore.js"
     }, {
-        "name" : "member",
-        "path" : "./stores/memberstore.js"
+        "name": "member",
+        "path": "./stores/memberstore.js"
     }],
-    "models" : [
-        {
-            "name" : "user",
-            "path" : "./model/usermodel.js"
-        }
-    ],
+    "models": [{
+        "name": "user",
+        "path": "./model/usermodel.js"
+    }],
     "config": {
         "test": {
             "database": {
                 "db": "mongo",
                 "name": "test",
+                "path": "./drivers/mongo/",
                 "password": "password",
                 "type": "mongo",
                 "url": "mongodb://localhost:27017/"
@@ -46,11 +45,11 @@
             "basePath": "./main/",
             "js": "index.js"
         },
-        "mysql":{
+        "mysql": {
             "database": {
                 "db": "mysql",
                 "name": "test",
-                "username" : "demo",
+                "username": "demo",
                 "password": "test123",
                 "type": "mysql",
                 "host": "localhost"
@@ -64,6 +63,6 @@
         "path": "./app.js"
     },
     "defaults": {
-        "env": "mysql"
+        "env": "test"
     }
 }

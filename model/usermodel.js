@@ -4,18 +4,19 @@
  * This could be used by SQL or no-sql databases.
  */
 
- const AbstractModel = require( "../data/factory/model/abstractmodel" ).AbstractModel;
+const AbstractModel = require("../framework/core/db/abstractmodel").AbstractModel;
 
- let UserModel = class UserModel extends AbstractModel {
-  
-    constructor(config){
-        super();
+let Model = class UserModel extends AbstractModel {
+
+    constructor(config, store) {
+        super(store);
         this.config.model = 'user';
 
         // Following are the fields available for the model.
         this.config.fields.name = "";
         this.config.fields.age = 0;
         this.config.fields.place = "";
+        this.config.fields.content = "";
 
         this.init(config);
     };
@@ -24,6 +25,8 @@
         return "id";
     };
 
- };
+};
 
- module.exports = UserModel; // Module exports for class UserModel.
+Object.freeze(Model);
+
+module.exports = Model; // Module exports for class UserModel.

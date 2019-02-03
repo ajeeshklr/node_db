@@ -1,9 +1,9 @@
 "use strict;"
 
 const __supported_operands = ['and', 'or', "<", ">", "<=", ">=", "=", "!=", "__op", "set"];
-let configPart = 'config.fields.';
+const configPart = 'config.fields.';
 
-let Expression = class Expression {
+const Expression = class Expression {
 
     constructor(operator, ...operands) {
 
@@ -66,7 +66,7 @@ let Expression = class Expression {
                             // value[0] is key.
                             let val = value[0].startsWith(configPart) ? value[0].substr(configPart.length) : value[0]
 
-                            tempExp += val + " " + this.operator + " " + (typeof (value[1]) != 'string' ? value[1] : "\'" + value[1] + "\'");
+                            tempExp += "(" + val + " " + this.operator + " " + (typeof (value[1]) != 'string' ? value[1] : "\'" + value[1] + "\'") + ")";
                         } else {
                             tempExp += value.join(" " + this.operator + " ");
                         }
@@ -136,7 +136,6 @@ let QueryExpression = class QueryExpression {
 
             try {
                 var jsonObject = JSON.parse(expression);
-                // console.log("JSON object parsed successfully - " + expression);
                 parsedExp = new Expression(jsonObject);
             } catch (error) {
                 console.error(error);
@@ -150,8 +149,6 @@ let QueryExpression = class QueryExpression {
                 parsedExp = this.__parseExpression(expression);
             }
         }
-
-        // console.log(parsedExp);
 
         return parsedExp;
     };
@@ -196,13 +193,13 @@ let QueryExpression = class QueryExpression {
         }
     };
 
-    toString(simpleSql = false) {
+    toString(simpleSql = false, stringJoin = " AND ") {
 
         var str = "";
         if (this.isValidExpression()) {
             this.parsedExpression.forEach((exp) => {
                 if (str.length > 0) {
-                    str += " AND ";
+                    str += stringJoin;
                 }
                 str += exp.toString(simpleSql);
             });
@@ -215,10 +212,10 @@ let QueryExpression = class QueryExpression {
 
         let exp = [];
         let expressionString = "";
-
-        Object.keys(expression).forEach((value, index, array) => {
-
-            // console.log(value + " - " + JSON.stringify(expression[value]));
+        let keys = Object.keys(expression);
+        let array = Object.values(expression);
+        for (var index = 0; index < keys.length; index++) {
+            var value = keys[index];
 
             if (typeof (value) == "string") {
                 if (__supported_operands.indexOf(value.toLowerCase()) >= 0) {
@@ -249,7 +246,7 @@ let QueryExpression = class QueryExpression {
                             break;
                         case "__op":
                             if (index == 0 /* Should be the first index */ ) {
-                                exp.push(new Expression(expression[value], [array[1], expression[array[1]]]));
+                                exp.push(new Expression(expression[value], [keys[1], array[1]]));
                                 return exp; // Break the execution from here, as it is expected to have binary operators.
                             }
                             break;
@@ -290,8 +287,7 @@ let QueryExpression = class QueryExpression {
                     exp.push(new Expression("=", [value, expression[value]]));
                 }
             }
-
-        });
+        }
 
         return exp;
     };

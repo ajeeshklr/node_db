@@ -3,13 +3,11 @@
  * Default base model class, which shall contain details regarding data models used in the application.
  */
 
-let eventMixin = require('../../mixins').event;
-let StoreManager = require("../../storemanager").StoreManager;
-
+const eventMixin = require('../mixins/mixins').event;
 
 let AbstractModel = class AbstractModel {
 
-    constructor() {
+    constructor(store) {
         this.config = {
             model: '',
             fields: {}
@@ -17,6 +15,7 @@ let AbstractModel = class AbstractModel {
         this._isDirty = false;
         this._modified = {};
         this._modifiedFields = [];
+        this.store = store;
     };
 
 
@@ -25,7 +24,9 @@ let AbstractModel = class AbstractModel {
     };
     get(key) {
         if (this._modifiedFields.includes(key) || Object.keys(this.config.fields).includes(key)) {
-            return this._modifiedFields.includes(key) ? this._modified[key] : this.config.fields[key];
+            return this._modifiedFields.includes(key) ?
+                this._modified[key] :
+                this.config.fields[key];
         }
     };
     set(key, value) {
@@ -59,7 +60,6 @@ let AbstractModel = class AbstractModel {
         if (!values) {
             return;
         }
-
 
         var _dirty = this._isDirty;
         this.beginInit();
@@ -98,7 +98,7 @@ let AbstractModel = class AbstractModel {
             let bAdd = false;
             if (!this.getId()) {
                 bAdd = true;
-                p = StoreManager.getInstance().get(this.modelName()).add(this);
+                p = this.store.add(this);
             } else {
 
                 bAdd = false;
@@ -109,9 +109,7 @@ let AbstractModel = class AbstractModel {
                 };
 
                 updateConfig.filter[this.getIdField()] = this.getId();
-
-
-                p = StoreManager.getInstance().get(this.modelName()).update(this, updateConfig);
+                p = this.store.update(this, updateConfig);
             }
 
             if (p) {
@@ -131,8 +129,6 @@ let AbstractModel = class AbstractModel {
                     console.error(err);
                 });
             }
-
-
         }
     };
 
@@ -144,7 +140,7 @@ let AbstractModel = class AbstractModel {
         this.fire('discard');
     };
 
-    getIdField(){
+    getIdField() {
         return "_id";
     };
     getId() {
@@ -165,6 +161,10 @@ let AbstractModel = class AbstractModel {
 
         return [];
     };
+
+    toJSON() {
+        return this.config.fields;
+    }
 
     getUpdatorConfig() {
         let updatedConfig = [];
@@ -188,5 +188,6 @@ let AbstractModel = class AbstractModel {
 };
 
 Object.assign(AbstractModel.prototype, eventMixin);
+Object.freeze(AbstractModel);
 
 exports.AbstractModel = AbstractModel;

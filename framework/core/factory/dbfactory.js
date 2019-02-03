@@ -18,7 +18,7 @@ let DBFactory = class DBFactory {
             throw new Error("Instance of singleton can't be created.");
         }
 
-        console.log('Instantiating DB factory instance.');
+        console.error('Instantiating DB factory instance.');
     };
 
     static getInstnace() {
@@ -66,7 +66,7 @@ let DBFactory = class DBFactory {
                     } else {
                         resolve(currentDb);
                     }
-                }else{
+                } else {
                     reject('Invalid configuration specified.');
                 }
             } else {
@@ -86,7 +86,7 @@ let DBFactory = class DBFactory {
             }).catch(err => {
                 callback(err);
             });
-        }else{
+        } else {
             return p;
         }
 
@@ -102,10 +102,17 @@ let DBFactory = class DBFactory {
     createDB(config, callback) {
 
         let p = new Promise((resolve, reject) => {
-            let path = './db/' + config.database.db;
-            let db = require(path).DB;
+
+            let path = config.database.path + config.database.db + ".js";
+
+            let path_resolve = require('path');
+
+            let processPath = process.cwd(); // Current working path of the node.js process.
+            let dbpath = path_resolve.resolve(processPath, path);
+
+            let db = require(dbpath).DB;
             let dbinstance = new db();
-            
+
 
             console.log('Creating new DB instance from ' + path);
 

@@ -5,15 +5,12 @@
  * 
  */
 
-let AbstractModel = require('../data/factory/model/abstractmodel').AbstractModel;
-let dbmanager = require('../data/dbmanager').DbManager;
-let DBOperation = require('../data/factory/dboperation').DBOperation;
-let DB_OP = require('../data/factory/dboperation').DB_OP;
-let config = require('../config').getConfig();
+let AbstractModel = require('./abstractmodel').AbstractModel;
+let DBOperation = require('./dboperation').DBOperation;
+let DB_OP = require('./dboperation').DB_OP;
 let ModelManager = require("./modelmanager");
-
-
-let eventMixin = require('./mixins').event;
+let eventMixin = require('../mixins/mixins').event;
+let AbstractDB = require('./abstractdb').AbstractDB;
 
 let co = require('co');
 
@@ -26,6 +23,8 @@ let Store = class Store {
     constructor() {
         this._storeName = '';
         this._supportedModel = '';
+        this.database = null;
+        console.error("Inside store constructor");
     };
 
     /**
@@ -41,48 +40,41 @@ let Store = class Store {
 
     add(model, callback) {
 
+        var _this = this;
+
         let p = new Promise((resolve, reject) => {
             if (model instanceof AbstractModel) {
-                if (model.modelName() == this.modelName()) {
-
-                    var manager = dbmanager.getInstance();
+                if (model.modelName() == _this.modelName()) {
 
                     // Let's use generators here as we are going to use promises.
                     co(function* () {
-                        let db = yield manager.configure(config);
-                        if (!db) {
-                            callback(new Error('Internal server error. Could not connect to DB driver.'));
-                            return;
-                        }
 
-                        let dbinstance = yield manager.openDatabase();
-                        if (dbinstance && dbinstance.databaseName && dbinstance.databaseName == config.database.name) {
-                            var operation = new DBOperation(DB_OP.DB_OP_INSERT, model);
-                            let res = yield manager.execute(operation);
+                        var operation = new DBOperation(DB_OP.DB_OP_INSERT, model);
+                        let res = yield _this.execute(operation);
+                        operation = null;
 
-                            // Once it is done, fire an event.
-                            //  this.fire('add', model); // Model is updated with ID and other fields, which are required.
+                        // Once it is done, fire an event.
+                        //  this.fire('add', model); // Model is updated with ID and other fields, which are required.
+                        // TODO - Update model with id and other needed fields.
+                        resolve(res);
 
-                            resolve(res);
-                        }
 
                     }).catch(err => {
-                        console.log(err);
+                        console.error(err);
                         reject(err);
 
                     });
+                } else {
+                    reject("Expected " + _this.modelName() + ". But received " + model.modelName());
                 }
+            } else {
+                reject("model is not instance of AbstractModel");
             }
         });
 
         if (callback) {
-
-            p.then(res => {
-                callback(null, res);
-            }).catch(err => {
-                callback(err);
-            });
-
+            p.then(res => callback(null, res))
+                .catch(err => callback(err));
         } else {
             return p;
         }
@@ -92,6 +84,39 @@ let Store = class Store {
     remove(model, criteria, callback) {
 
     };
+
+    /**
+     * Execute DB operation on the DB underlying.
+     */
+    execute(dboperation, callback) {
+
+        if (!this.database) {
+            if (callback) {
+                callback(400, 'Invalid database or database is not initialized.');
+            } else {
+                return new Promise((resolve, reject) => {
+                    reject('Invalid database or databse is not initialized.');
+                });
+            }
+        } else {
+            if (this.database.state != AbstractDB.DB_STATES.DB_INVALID) {
+                if (callback) {
+                    this.database.execute(dboperation, callback);
+                } else {
+                    var _this = this;
+                    return new Promise((resolve, reject) => {
+                        _this.database.execute(dboperation)
+                            .then(res => {
+                                resolve(res);
+                            }).catch(err => {
+                                reject(err);
+                            });
+                    }); // return new Promise
+                } // else 
+            } // this.database.state != AbstractDB.DB_STATES.DB_INVALID
+        } // else
+    }; // execute
+
 
     /**
      * 
@@ -170,11 +195,13 @@ let Store = class Store {
      */
     update(model, criteria, callback) {
 
+        var _this = this;
+
         let p = new Promise((resolve, reject) => {
 
             if (!criteria) {
                 criteria = {
-                    "collection": this.modelName()
+                    "collection": _this.modelName()
                 }
             };
 
@@ -182,9 +209,9 @@ let Store = class Store {
             updateObject["criteria"] = criteria;
 
             if (model instanceof AbstractModel) {
-                if (model.modelName() == this.modelName()) {
+                if (model.modelName() == _this.modelName()) {
                     // Set the table / collection name.
-                    updateObject["collection"] = this.modelName() || criteria.collection;
+                    updateObject["collection"] = _this.modelName() || criteria.collection;
 
                     if (model.getId()) {
                         let filter = updateObject.criteria.filter || {};
@@ -207,18 +234,12 @@ let Store = class Store {
 
             updateObject["model"] = model; // Set the model or object for updation.
 
-            var manager = dbmanager.getInstance();
-            let _this = this;
 
             // Let's use generators here as we are going to use promises.
             co(function* () {
-                let db = yield manager.configure(config);
-                if (!db) {
-                    callback(new Error('Internal server error. Could not connect to DB driver.'));
-                    return;
-                }
+
                 var operation = new DBOperation(DB_OP.DB_OP_UPDATE, updateObject);
-                let pr = manager.execute(operation, callback);
+                let pr = _this.execute(operation, callback);
                 if (pr) {
                     pr.then(res => {
 
@@ -228,7 +249,8 @@ let Store = class Store {
                             // Let's convert the document to a valid model instance.
                             // All the documents are updated now. Let's use the same query and find all the documents, which are updated.
                             let modifiedRecords = _this.find({
-                                "filter": model instanceof AbstractModel ? updateObject.model.getUpdatorConfig() : updateObject.model.set
+                                "filter": model instanceof AbstractModel ?
+                                    updateObject.model.getUpdatorConfig() : updateObject.model.set
                             });
                             let models = [];
                             if (modifiedRecords) {
@@ -238,6 +260,7 @@ let Store = class Store {
                                     if (null != model) {
                                         result.forEach(element => {
                                             var m = new model();
+                                            m.store = _this;
                                             m.init(element.config.fields);
                                             m.setId(element[m.getIdField()]);
                                             models.push(m);
@@ -351,16 +374,17 @@ let Store = class Store {
             throw new Error("Invalid criteria specified.");
         }
 
+        var _this = this;
         let p = new Promise((resolve, reject) => {
 
             // Actual business logic to perform find operation.
             var config = {
-                'model': this.modelName(),
+                'model': _this.modelName(),
                 'query': criteria
             };
 
             var operation = new DBOperation(DB_OP.DB_OP_READ, config);
-            let _readp = dbmanager.getInstance().execute(operation);
+            let _readp = _this.execute(operation);
             // _readp is a promise, so let's wait for th promise to return.
             _readp.then(res => {
                 resolve(res);
@@ -368,20 +392,19 @@ let Store = class Store {
             }).catch(err => {
                 reject(err);
             });
-
         });
 
         if (callback) {
             p.then(res => {
                 callback(null, res);
                 if (fireEvents) {
-                    this.fire("find", res);
+                    _this.fire("find", res);
                 }
 
             }).catch(err => {
                 callback(err);
                 if (fireEvents) {
-                    this.fire("find", null, err);
+                    _this.fire("find", null, err);
                 }
             });
         } else {

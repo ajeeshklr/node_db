@@ -2,12 +2,12 @@
 
 let BaseStore = require("../framework/core/db/store").Store;
 
-let Store = class UserStore extends BaseStore {
+let Store = class MemberStore extends BaseStore {
 
     constructor() {
         super();
-        this._storeName = "user";
-        this._supportedModel = "user";
+        this._storeName = "member";
+        this._supportedModel = "member";
     }
 
 };

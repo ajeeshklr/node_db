@@ -18,7 +18,7 @@ let ModelManager = class ModelManager {
             throw new Error("Could not instantiate a singleton class. Use the static methods instead.");
         }
 
-        console.log('Initializing model manager.');
+        console.error('Initializing model manager.');
         this._models = {}; // List of models in the ModelManager.
     };
 
@@ -64,7 +64,7 @@ let ModelManager = class ModelManager {
                     let modelPath = path.resolve(processPath, modelsCfg.path);
                     console.info("model path - " + modelPath);
                     let model = require(modelPath);
-                    this._models[modelsCfg.name] = model;
+                    this._models[modelsCfg.name];
                 } catch (err) {
                     console.error(err);
                 }
