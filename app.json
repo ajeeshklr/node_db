@@ -27,6 +27,7 @@
             "database": {
                 "db": "mongo",
                 "name": "test",
+                "path": "./drivers/mongo/",
                 "password": "password",
                 "type": "mongo",
                 "url": "mongodb://localhost:27017/"
@@ -38,6 +39,7 @@
             "database": {
                 "db": "mongo",
                 "name": "test",
+                "path": "./drivers/mongo/",
                 "password": "password",
                 "type": "mongo",
                 "url": "mongodb://localhost:27017/"
@@ -49,6 +51,7 @@
             "database": {
                 "db": "mysql",
                 "name": "test",
+                "path": "./drivers/mysql/",
                 "username": "demo",
                 "password": "test123",
                 "type": "mysql",
@@ -63,6 +66,6 @@
         "path": "./app.js"
     },
     "defaults": {
-        "env": "test"
+        "env": "staging"
     }
 }
