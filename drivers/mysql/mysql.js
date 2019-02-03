@@ -7,6 +7,7 @@ let AbstractModel = require("../model/abstractmodel").AbstractModel;
 let DbQuery = require("../../dbquery").Query;
 var mysql = require('mysql');
 var ModelManager = require('../../modelmanager');
+let sqlparser = require('../utils/sql_parser');
 
 let co = require('co');
 
@@ -129,21 +130,7 @@ let MySQLDB = class MySQLDB extends AbstractDB {
 
         return new Promise((resolve, reject) => {
 
-            let fields = model.getFields();
-            let values = [];
-            fields.forEach(key => {
-                values.push(model.get(key));
-            });
-
-            let select = {
-                "fields": fields,
-                "values": values
-            }
-
-            let dbq = new DbQuery(model.modelName(), select);
-            let query = dbq.toInsert();
-
-            _this.getClientDb().query(query, (err, result) => {
+            _this.getClientDb().query(sqlparser.convertToInsertQuery(model), (err, result) => {
 
                 if (err) {
                     reject(err);
@@ -160,77 +147,57 @@ let MySQLDB = class MySQLDB extends AbstractDB {
 
     deleteInternal(model) {
 
+        var _this = this;
         return new Promise((resolve, reject) => {
-            reject("Not implemented");
+            var query = sqlparser.convertToDeleteQuery(model);
+            _this.getClientDb().query(query, (err, result) => {
+                if (err) {
+                    // console.log(err);
+                    reject(err);
+                } else {
+                    // console.log(result);
+                    if (result.affectedRows > 0) {
+                        resolve(result);
+                    } else {
+                        reject(result);
+                    }
+                }
+            });
         });
 
     };
 
     updateInternal(updateObject) {
 
+        var _this = this;
         return new Promise((resolve, reject) => {
-            // model should have the following fields.
-            if (updateObject) {
 
-                if (updateObject.collection) {
-                    // Check to see if the model object or AbstractModel instance is valid.
-                    if (!updateObject.model || !updateObject.criteria) {
-                        reject("Invalid model or criteria received in updateObject.");
-                    }
+            try {
 
-                    let update = {};
-
-                    if (updateObject.model instanceof AbstractModel) {
-                        update["set"] = updateObject.model.getUpdatorConfig();
-                    } else if (typeof (updateObject.model) == "object") {
-                        update["set"] = updateObject.model.set;
-                    }
-
-
-                    // Criteria might have the following.
-                    // "filter" - for any filters
-                    // clause for any clauses.
-
-                    Object.keys(updateObject.criteria).forEach(element => {
-                        switch (element) {
-                            case "filter":
-                                update["filter"] = updateObject.criteria.filter;
-                                break;
-                            case "clause":
-                                update["clause"] = updateObject.criteria.clause;
-                                break;
-                        }
-                    });
-
-                    try {
-                        let dbquery = new DbQuery(updateObject.collection, update.set, update.filter, update.clause);
-                        let queryString = dbquery.toUpdate(); // Convert to query object.
-                        this.getClientDb().query(queryString, (err, result) => {
-                            if (err) {
-                                // console.log(err);
-                                reject(err);
-                            } else {
-                                // console.log(result);
-                                if (result.affectedRows > 0) {
-                                    resolve(result);
-                                } else {
-                                    reject(result);
-                                }
-                            }
-                        });
-
-                    } catch (error) {
-                        reject(error);
-                    }
-
-
-                } else {
-                    reject("Invalid updateObject received. Collection name is not present in updateObject.")
+                let queryString = sqlparser.convertToUpdateQuery(updateObject);
+                if (null == queryString || queryString.length == 0) {
+                    reject("Invalid update object received.");
                 }
 
-            } else {
-                reject("Invalid updateObject received.");
+                _this.getClientDb().query(queryString, (err, result) => {
+                    if (err) {
+                        // console.log(err);
+                        reject(err);
+                    } else {
+                        // console.log(result);
+                        if (result.affectedRows > 0) {
+                            resolve(result);
+                        } else {
+                            reject(result);
+                        }
+                    }
+                });
+
+            } catch (error) {
+                reject(error);
             }
+
+
         });
     };
 

@@ -59,6 +59,19 @@
             },
             "basePath": "./test/",
             "js": "index.js"
+        },
+        "sqlite-cipher": {
+            "database": {
+                "db": "sqlite_cipher",
+                "name": "test",
+                "path": "./drivers/sqlite/",
+                "module": "/Projects/SDKs/sqlitecipher/build/node_modules/sqlite3",
+                "password": "test123",
+                "type": "mysql",
+                "host": "localhost"
+            },
+            "basePath": "./test/",
+            "js": "index.js"
         }
 
     },

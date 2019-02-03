@@ -189,7 +189,7 @@ let AbstractDB = class AbstractDB {
 
                     // Set the DB state to close.
                     _this.state = DB_STATES.DB_CLOSE;
-
+                    _this._clientdb = null;
                     // Resolve once the DB is closed.
                     resolve(res);
                 } catch (ex) {

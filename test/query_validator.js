@@ -60,11 +60,11 @@ testSelectQueryComplex = function () {
     ];
 
     let query = new Query("users", select, expObj, clauses);
-    console.error(query.toSelect());
+    console.log(query.toSelect());
     console.log(query);
 
     let mongoQ = new MongoQuery("users", select, expObj, clauses);
-    console.error(mongoQ.toSelect());
+    console.log(mongoQ.toSelect());
     console.log(mongoQ);
 }
 
@@ -97,11 +97,11 @@ testSelectQuerySimple = function () {
     ];
 
     let query = new Query("users", select, expObj, clauses);
-    console.error(query.toSelect());
+    console.log(query.toSelect());
     console.log(query);
 
     let mongoQ = new MongoQuery("users", select, expObj, clauses);
-    console.error(mongoQ.toSelect());
+    console.log(mongoQ.toSelect());
     console.log(mongoQ);
 
 }
@@ -170,11 +170,11 @@ testUpdateQueryComplex = function () {
     ];
 
     let query = new Query("users", update, expObj, clauses);
-    console.error(query.toUpdate());
+    console.log(query.toUpdate());
     console.log(query);
 
     let mongoQ = new MongoQuery("users", update, expObj, clauses);
-    console.error(mongoQ.toUpdate());
+    console.log(mongoQ.toUpdate());
     console.log(mongoQ);
 }
 
@@ -210,11 +210,11 @@ testUpdateQuerySimple = function () {
     ];
 
     let query = new Query("users", update, expObj, clauses);
-    console.error(query.toUpdate());
+    console.log(query.toUpdate());
     console.log(query);
 
     let mongoQ = new MongoQuery("users", update, expObj, clauses);
-    console.error(mongoQ.toUpdate());
+    console.log(mongoQ.toUpdate());
     console.log(mongoQ);
 }
 
@@ -228,11 +228,11 @@ testInsertQuery = function () {
 
 
     let query = new Query("users", insert, null, null);
-    console.error(query.toInsert());
+    console.log(query.toInsert());
     console.log(query);
 
     let mongoQ = new MongoQuery("users", insert, null, null);
-    console.error(mongoQ.toInsert());
+    console.log(mongoQ.toInsert());
     console.log(mongoQ);
 }
 
@@ -248,11 +248,11 @@ testDeleteQuery = function () {
 
 
     let query = new Query("users", deleteq, null, null);
-    console.error(query.toDelete());
+    console.log(query.toDelete());
     console.log(query);
 
     let mongoQ = new MongoQuery("users", deleteq, null, null);
-    console.error(mongoQ.toDelete());
+    console.log(mongoQ.toDelete());
     console.log(mongoQ);
 }
 
@@ -299,11 +299,11 @@ testDeleteComplexQuery = function () {
 
 
     let query = new Query("users", null, expObj, null);
-    console.error(query.toDelete());
+    console.log(query.toDelete());
     console.log(query);
 
     let mongoQ = new MongoQuery("users", null, expObj, null);
-    console.error(mongoQ.toDelete());
+    console.log(mongoQ.toDelete());
     console.log(mongoQ);
 }
 
