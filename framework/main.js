@@ -1,4 +1,3 @@
-require
 let Container = {};
 
 Container.init = function (config) {
