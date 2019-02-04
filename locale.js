@@ -4,17 +4,17 @@
  * Concept is to keep a simple framework, which shall take care of the hardcoding inside each templates / viewes/script files.
  */
 
- const container = {};
+const container = {};
 
- const strings = {};
+const strings = {};
 
- /**
-  * String details for head, which could contain meta information.
-  */
+/**
+ * String details for head, which could contain meta information.
+ */
 
-  //#region String literals for default pages.
-  
-strings.head_title_default = 'MeshChat - Admin Page';    // Head title, this could be used from different places.
+//#region String literals for default pages.
+
+strings.head_title_default = 'MeshChat - Admin Page'; // Head title, this could be used from different places.
 strings.head_description_default = 'Admin page for MeshChat application.';
 strings.head_keywords_default = '';
 
@@ -23,8 +23,10 @@ strings.head_keywords_default = '';
 //#region Literals related to contact page
 strings.contact_title = 'MeshChat - Contact us';
 strings.contact_subtitle = 'This page is used for internal use only. ';
+strings.contact_thanks = "Thanks for showing interest. We shall get back to you soon.";
+strings.contact_display = "none";
 
 //#endregion
 
- container.strings = strings;
- module.exports = container;
+container.strings = strings;
+module.exports = container;

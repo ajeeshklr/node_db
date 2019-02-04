@@ -3,7 +3,7 @@
  * Default base model class, which shall contain details regarding data models used in the application.
  */
 
-const eventMixin = require('../mixins/mixins').event;
+// const eventMixin = require('../mixins/mixins').event;
 
 let AbstractModel = class AbstractModel {
 
@@ -16,6 +16,10 @@ let AbstractModel = class AbstractModel {
         this._modified = {};
         this._modifiedFields = [];
         this.store = store;
+
+        if (null == store) {
+            throw ('store instance received is invalid or null. Please pass a valid store instance.');
+        }
     };
 
 
@@ -112,23 +116,25 @@ let AbstractModel = class AbstractModel {
                 p = this.store.update(this, updateConfig);
             }
 
-            if (p) {
-                p.then(res => {
-                    if (res.length > 0) {
-                        this.__commit(); // Save or update is successful.
-                        if (bAdd) {
-                            this.fire('add', [this]);
-                        } else {
-                            this.fire('update', [this]);
-                        }
-                    } else {
-                        this.fire('error', "Update failed.");
-                        console.error("Update failed.");
-                    }
-                }).catch(err => {
-                    console.error(err);
-                });
-            }
+            return p;
+
+            // if (p) {
+            //     p.then(res => {
+            //         if (res.length > 0) {
+            //             this.__commit(); // Save or update is successful.
+            //             if (bAdd) {
+            //                 this.fire('add', [this]);
+            //             } else {
+            //                 this.fire('update', [this]);
+            //             }
+            //         } else {
+            //             this.fire('error', "Update failed.");
+            //             console.error("Update failed.");
+            //         }
+            //     }).catch(err => {
+            //         console.error(err);
+            //     });
+            // }
         }
     };
 
@@ -137,7 +143,7 @@ let AbstractModel = class AbstractModel {
         this._modified = {};
         this._isDirty = false;
 
-        this.fire('discard');
+        // this.fire('discard');
     };
 
     getIdField() {
@@ -187,7 +193,7 @@ let AbstractModel = class AbstractModel {
 
 };
 
-Object.assign(AbstractModel.prototype, eventMixin);
+// Object.assign(AbstractModel.prototype, eventMixin);
 Object.freeze(AbstractModel);
 
 exports.AbstractModel = AbstractModel;

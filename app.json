@@ -8,7 +8,8 @@
     }],
     "models": [{
         "name": "user",
-        "path": "./model/usermodel.js"
+        "path": "./model/usermodel.js",
+        "schema": "./schema/schema_usermodel.js"
     }],
     "config": {
         "test": {
@@ -54,23 +55,24 @@
                 "path": "./drivers/mysql/",
                 "username": "demo",
                 "password": "test123",
-                "type": "mysql",
+                "type": "sql",
                 "host": "localhost"
             },
             "basePath": "./test/",
             "js": "index.js"
         },
-        "sqlite-cipher": {
+        "sqlite_cipher": {
             "database": {
                 "db": "sqlite_cipher",
                 "name": "test",
+                "db_path": "./.data/",
                 "path": "./drivers/sqlite/",
                 "module": "/Projects/SDKs/sqlitecipher/build/node_modules/sqlite3",
                 "password": "test123",
-                "type": "mysql",
+                "type": "sql",
                 "host": "localhost"
             },
-            "basePath": "./test/",
+            "basePath": "./main/",
             "js": "index.js"
         }
 
@@ -79,6 +81,6 @@
         "path": "./app.js"
     },
     "defaults": {
-        "env": "staging"
+        "env": "sqlite_cipher"
     }
 }

@@ -4,8 +4,8 @@
 
 //#region Includes for server 
 
-const http = require('http');  // For using with HTTP module
-const https = require('https');    // For using with HTTPS module
+const http = require('http'); // For using with HTTP module
+const https = require('https'); // For using with HTTPS module
 const fs = require('fs');
 const url = require('url');
 const StringDecoder = require('string_decoder').StringDecoder;
@@ -91,8 +91,9 @@ let unifiedServerResponseHandler = function (req, res) {
                 processResponseHandler(res, method, trimmedPath, statusCode, payload, contentType);
             });
         } catch (error) {
-            debug(error);
-            processResponseHandler(res, method, trimmedPath, 500, { 'Error': 'An unknown error has occured.' }, 'json');
+            processResponseHandler(res, method, trimmedPath, 500, {
+                'Error': 'An unknown error has occured.'
+            }, 'json');
         }
     });
 };
@@ -137,7 +138,7 @@ let processResponseHandler = function (res, method, trimmedPath, statusCode, pay
             res.setHeader('Content-Type', 'application/javascript');
             break;
 
-        default:    // Default to json.
+        default: // Default to json.
             payload = typeof (payload) == 'object' ? payload : {};
             payloadString = JSON.stringify(payload);
             res.setHeader('Content-Type', 'application/json');
@@ -149,11 +150,11 @@ let processResponseHandler = function (res, method, trimmedPath, statusCode, pay
     res.end(payloadString);
 
     // If the response is 200, print green, otherwise print red
-    if (statusCode == 200) {
-        console.log('\x1b[32m%s\x1b[0m', method.toUpperCase() + ' /' + trimmedPath + ' ' + statusCode);
-    } else {
-        console.log('\x1b[31m%s\x1b[0m', method.toUpperCase() + ' /' + trimmedPath + ' ' + statusCode);
-    }
+    // if (statusCode == 200) {
+    //     console.log('\x1b[32m%s\x1b[0m', method.toUpperCase() + ' /' + trimmedPath + ' ' + statusCode);
+    // } else {
+    //     console.log('\x1b[31m%s\x1b[0m', method.toUpperCase() + ' /' + trimmedPath + ' ' + statusCode);
+    // }
 };
 
 //Create HTTP server

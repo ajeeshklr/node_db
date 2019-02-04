@@ -579,6 +579,12 @@ let AbstractDB = class AbstractDB {
 
     }
 
+    getDatabaseType() {
+        return this.config.type != null && typeof (this.config.type) == 'string' ? this.config.type : '';
+    }
+
+
+
 };
 
 AbstractDB.DB_STATES = DB_STATES;

@@ -1,4 +1,3 @@
-
 /**
  * Controller file to handle all miscellanious requests.
  * This shall be used to handle requeststs like, contact us, about etc.
@@ -9,7 +8,7 @@ const locale = require('../locale');
 
 let container = {};
 
-container.contact = function ( data, callback ){
+container.contact = function (data, callback) {
     // Request for index page. Let's serve index page.
     // Reject any request that isn't a GET or POST
 
@@ -21,7 +20,8 @@ container.contact = function ( data, callback ){
         'head.keywords': locale.strings.head_keywords_default, // Add meta keyword here for SEO.
         'contact.title': locale.strings.contact_title,
         'contact.subtitle': locale.strings.contact_subtitle,
-        'contact.display': data.method == 'post' ? 'block' : 'none'
+        'contact.display': data.method == 'post' ? 'block' : 'none',
+        'contact.thanks': locale.strings.contact_thanks
     };
     if (data.method == 'get' || data.method == 'post') {
 

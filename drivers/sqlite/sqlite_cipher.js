@@ -23,11 +23,18 @@ let SqliteCipher = class SqliteCipher extends AbstractDB {
         var _this = this;
         return new Promise((resolve, reject) => {
             if (_this.config) {
+
+                let path = require('path');
+                let processPath = process.cwd(); // Current working path of the node.js process.
+                let dbname = path.resolve(processPath, path.join(_this.config.db_path, _this.config.name));
+
                 // Need to use the parameters to open database and perform operations.
-                var db = new _this._sqlite3.Database(_this.config.name);
-                // Configure cipher for the database.
-                db.run("PRAGMA KEY = '" + _this.config.password + "'");
-                db.run("PRAGMA CIPHER = 'aes-128-cbc'");
+                var db = new _this._sqlite3.Database(dbname);
+                db.serialize(function () {
+                    // Configure cipher for the database.
+                    db.run("PRAGMA KEY = '" + _this.config.password + "'");
+                    db.run("PRAGMA CIPHER = 'aes-128-cbc'");
+                });
 
                 resolve(db);
             } else {
@@ -63,11 +70,13 @@ let SqliteCipher = class SqliteCipher extends AbstractDB {
     insertInternal(model) {
 
         var _this = this;
-        return new Promise((resolve, reject) => {
+        var db = _this.getClientDb();
 
-            _this.getClientDb().run(
+        return new Promise((resolve, reject) => {
+            //db.serialize(function () {
+            db.run(
                 sqlparser.convertToInsertQuery(model),
-                [], (err) => {
+                function (err) {
                     if (err) {
                         console.error(err);
                         reject(err);
@@ -76,6 +85,8 @@ let SqliteCipher = class SqliteCipher extends AbstractDB {
                         resolve(model);
                     }
                 });
+            // });
+
         });
 
     }
@@ -163,21 +174,27 @@ let SqliteCipher = class SqliteCipher extends AbstractDB {
     }
 
     executeStatement(statement) {
+        var db = this.getClientDb();
+
         return new Promise((resolve, reject) => {
             if (typeof statement == "string") {
                 // Perform SQL query against the databse and share result once it is done.
-                try {
-                    this.getClientDb().run(queryString, (err, result) => {
-                        if (err) {
-                            reject(err);
-                        } else {
-                            resolve(result);
-                        }
-                    });
-                } catch (ex) {
-                    console.error(ex);
-                    reject(ex);
-                }
+                db.serialize(function () {
+                    try {
+
+                        db.run(statement, (err, result) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve(result);
+                            }
+                        });
+                    } catch (ex) {
+                        console.error(ex);
+                        reject(ex);
+                    }
+                });
+
 
             } else {
                 reject("Invalid query statement. Exptected string, receive " + (typeof statement));
@@ -188,4 +205,4 @@ let SqliteCipher = class SqliteCipher extends AbstractDB {
 
 }
 
-module.exports = SqliteCipher;
+exports.DB = SqliteCipher;

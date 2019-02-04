@@ -62,9 +62,17 @@ let ModelManager = class ModelManager {
                     let path = require('path');
                     let processPath = process.cwd(); // Current working path of the node.js process.
                     let modelPath = path.resolve(processPath, modelsCfg.path);
+                    let schemaPath = modelsCfg.schema && modelsCfg.schema.length > 0 ? path.resolve(processPath, modelsCfg.schema) : "";
                     console.info("model path - " + modelPath);
                     let model = require(modelPath);
-                    this._models[modelsCfg.name];
+                    if (schemaPath.length > 0) {
+                        let schema = require(schemaPath);
+                        model.prototype.sqlSchema = schema.sqlSchema;
+                        model.prototype.jsonSchema = schema.jsonSchema;
+                    }
+                    this._models[modelsCfg.name] = model;
+                    modelPath = null;
+
                 } catch (err) {
                     console.error(err);
                 }

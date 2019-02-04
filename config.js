@@ -43,7 +43,7 @@ environments.test = {
 environments.mysql = {
     'httpPort': 6000,
     'httpsPort': 6001,
-    'envName': 'test',
+    'envName': 'mysql',
     'hashingSecret': 'this is a testing secret',
     'templateGlobals': {
         'appName': 'MeshChat - Admin Page.',
@@ -51,6 +51,19 @@ environments.mysql = {
         'yearCreated': '2018'
     }
 };
+
+environments.sqlite_cipher = {
+    'httpPort': 6000,
+    'httpsPort': 6001,
+    'envName': 'sqlite_cipher',
+    'hashingSecret': 'this is sqlite-cipher secret',
+    'templateGlobals': {
+        'appName': 'MeshChat - Admin Page.',
+        'companyName': 'iMeshConnect Solutions Private Ltd.',
+        'yearCreated': '2018'
+    }
+};
+
 
 let currentEnv = typeof (process.env.NODE_ENV) == 'string' ? process.env.NODE_ENV.toLowerCase() : '';
 let environmentToExport = null;
@@ -106,7 +119,7 @@ let environmentToExport = null;
         console.log(environmentToExport.getDatabaseConfig());
 
     } catch (err) {
-        console.log(err);
+        console.error(err);
 
     }
 })();
