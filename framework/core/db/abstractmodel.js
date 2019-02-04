@@ -95,46 +95,21 @@ let AbstractModel = class AbstractModel {
     /**
      * Save all changes to store.
      */
-    save() {
+    save(callback) {
         // See if the model is dirty, if so, save to file system.
         if (this._isDirty || !this.getId()) {
-            let p = null;
-            let bAdd = false;
             if (!this.getId()) {
-                bAdd = true;
-                p = this.store.add(this);
+                this.store.add(this, callback);
             } else {
 
-                bAdd = false;
                 let updateConfig = {
                     "collection": this.modelName(),
                     "set": this.getUpdatorConfig(),
                     "filter": {}
                 };
-
                 updateConfig.filter[this.getIdField()] = this.getId();
-                p = this.store.update(this, updateConfig);
+                this.store.update(this, updateConfig, callback);
             }
-
-            return p;
-
-            // if (p) {
-            //     p.then(res => {
-            //         if (res.length > 0) {
-            //             this.__commit(); // Save or update is successful.
-            //             if (bAdd) {
-            //                 this.fire('add', [this]);
-            //             } else {
-            //                 this.fire('update', [this]);
-            //             }
-            //         } else {
-            //             this.fire('error', "Update failed.");
-            //             console.error("Update failed.");
-            //         }
-            //     }).catch(err => {
-            //         console.error(err);
-            //     });
-            // }
         }
     };
 
@@ -142,8 +117,6 @@ let AbstractModel = class AbstractModel {
         this._modifiedFields = [];
         this._modified = {};
         this._isDirty = false;
-
-        // this.fire('discard');
     };
 
     getIdField() {

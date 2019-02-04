@@ -1,8 +1,15 @@
 let AbstractDB = require('../../framework/core/db/abstractdb').AbstractDB;
 let ModelManager = require('../../framework/core/db/modelmanager').ModelManager;
 let sqlparser = require('../utils/sql_parser');
+let DBOP = require('../../framework/core/db/dboperation').DB_OP;
 
 let SqliteCipher = class SqliteCipher extends AbstractDB {
+
+    constructor() {
+        super();
+        this.queue = [];
+        this.busy = false;
+    }
 
     initInternal(config) {
         var _this = this;
@@ -165,6 +172,75 @@ let SqliteCipher = class SqliteCipher extends AbstractDB {
             }
         }
 
+    }
+
+    execute(dboperation, callback) {
+
+        if (null == dboperation ||
+            null == dboperation.record) {
+            console.error("Invalid dboperation while performing execute");
+            if (callback) {
+                callback(400, 'Invalid parameters received.');
+                return;
+            }
+        }
+
+        if (this.state != AbstractDB.DB_STATES.DB_OPEN ||
+            null == this._clientdb) {
+            if (callback) {
+                callback(500, 'Database is not open or databse is not initialized.');
+                return;
+            }
+        }
+
+        let queueParam = {
+            "function": function (dboperation, callback) {
+                switch (dboperation.operation) {
+                    case DBOP.DB_OP_INSERT:
+                        this.insert(dboperation.record, callback);
+                        break;
+                    case DBOP.DB_OP_DELETE:
+                        this.delete(dboperation.record, callback);
+                        break;
+                    case DBOP.DB_OP_READ:
+                        this.read(dboperation.record, callback);
+                        break;
+                    case DBOP.DB_OP_UPDATE:
+                        this.update(dboperation.record, callback);
+                        break;
+                    case DBOP.DB_OP_CREATE_TABLE:
+                        this.createTable(dboperation.record, callback);
+                        break;
+                    default:
+                        break;
+                }
+            },
+            "params": [dboperation, callback]
+        }
+
+        this.queue.push(queueParam);
+        process.nextTick(executeTask);
+
+    };
+
+    executeTask() {
+        if (this.busy) {
+            return;
+        }
+
+        this.busy = true;
+        var queueParam = this.queue.pop();
+        if (null == queueParam) {
+            this.busy = false;
+        } else {
+
+            queueParam.function(queueParam.params[0], (err, res) => {
+                this.busy = false;
+                if (null != queueParam.params[1]) queueParam.params[1](err, res);
+                process.nextTick(executeTask);
+            });
+
+        }
     }
 
 }
