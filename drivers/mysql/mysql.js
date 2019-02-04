@@ -2,11 +2,11 @@
 /**
  * This class is the extention for MongoDB database.
  */
-let AbstractDB = require('../abstractdb').AbstractDB;
-let AbstractModel = require("../model/abstractmodel").AbstractModel;
-let DbQuery = require("../../dbquery").Query;
+let AbstractDB = require('../../framework/core/db/abstractdb').AbstractDB;
+let AbstractModel = require("../../framework/core/db/abstractmodel").AbstractModel;
+let DbQuery = require("../../framework/core/db/dbquery").Query;
 var mysql = require('mysql');
-var ModelManager = require('../../modelmanager');
+var ModelManager = require('../../framework/core/db/modelmanager');
 let sqlparser = require('../utils/sql_parser');
 
 let co = require('co');
@@ -277,7 +277,7 @@ let MySQLDB = class MySQLDB extends AbstractDB {
         if (typeof statement == "string") {
             // Perform SQL query against the databse and share result once it is done.
             try {
-                this.getClientDb().query(queryString, callback);
+                this.getClientDb().query(statement, callback);
             } catch (ex) {
                 console.error(ex);
                 if (callback) callback(ex);

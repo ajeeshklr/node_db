@@ -49,7 +49,7 @@ let ModelManager = class ModelManager {
      * @param {JSON} modelsConfig models defined in the application file.
      * The model configurations are modeld in app.json under model config section.
      */
-    configure(modelsConfig) {
+    configure(modelsConfig, env) {
         if (null == modelsConfig || modelsConfig.lengh == 0) {
             return;
         }
@@ -62,13 +62,23 @@ let ModelManager = class ModelManager {
                     let path = require('path');
                     let processPath = process.cwd(); // Current working path of the node.js process.
                     let modelPath = path.resolve(processPath, modelsCfg.path);
-                    let schemaPath = modelsCfg.schema && modelsCfg.schema.length > 0 ? path.resolve(processPath, modelsCfg.schema) : "";
+
+                    var find = '{envName}';
+                    let schemaLocation = (modelsCfg.schema && modelsCfg.schema.length > 0 ? modelsCfg.schema : '').replace(find, env.envName);
+                    let schemaPath = path.resolve(processPath, schemaLocation);
                     console.info("model path - " + modelPath);
                     let model = require(modelPath);
                     if (schemaPath.length > 0) {
-                        let schema = require(schemaPath);
-                        model.prototype.sqlSchema = schema.sqlSchema;
-                        model.prototype.jsonSchema = schema.jsonSchema;
+                        try {
+                            console.info("schema path - " + schemaPath);
+
+                            let schema = require(schemaPath);
+                            model.prototype.sqlSchema = schema.sqlSchema;
+                            model.prototype.jsonSchema = schema.jsonSchema;
+                        } catch (ex) {
+                            console.error(ex);
+                        }
+
                     }
                     this._models[modelsCfg.name] = model;
                     modelPath = null;

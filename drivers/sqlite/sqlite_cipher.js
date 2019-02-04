@@ -75,7 +75,7 @@ let SqliteCipher = class SqliteCipher extends AbstractDB {
     }
 
     insertInternal(model, callback) {
-        var db = _this.getClientDb();
+        var db = this.getClientDb();
         db.run(
             sqlparser.convertToInsertQuery(model),
             [],
@@ -104,7 +104,7 @@ let SqliteCipher = class SqliteCipher extends AbstractDB {
         });
     }
 
-    updateInternal(updateObject) {
+    updateInternal(updateObject, callback) {
 
         try {
             let queryString = sqlparser.convertToUpdateQuery(updateObject);
@@ -157,7 +157,7 @@ let SqliteCipher = class SqliteCipher extends AbstractDB {
         });
     }
 
-    executeStatement(statement) {
+    executeStatement(statement, callback) {
         var db = this.getClientDb();
 
         if (typeof statement == "string") {
@@ -194,22 +194,22 @@ let SqliteCipher = class SqliteCipher extends AbstractDB {
         }
 
         let queueParam = {
-            "function": function (dboperation, callback) {
+            "function": function (dboperation, callback, _this) {
                 switch (dboperation.operation) {
                     case DBOP.DB_OP_INSERT:
-                        this.insert(dboperation.record, callback);
+                        _this.insert(dboperation.record, callback);
                         break;
                     case DBOP.DB_OP_DELETE:
-                        this.delete(dboperation.record, callback);
+                        _this.delete(dboperation.record, callback);
                         break;
                     case DBOP.DB_OP_READ:
-                        this.read(dboperation.record, callback);
+                        _this.read(dboperation.record, callback);
                         break;
                     case DBOP.DB_OP_UPDATE:
-                        this.update(dboperation.record, callback);
+                        _this.update(dboperation.record, callback);
                         break;
                     case DBOP.DB_OP_CREATE_TABLE:
-                        this.createTable(dboperation.record, callback);
+                        _this.createTable(dboperation.record, callback);
                         break;
                     default:
                         break;
@@ -219,26 +219,25 @@ let SqliteCipher = class SqliteCipher extends AbstractDB {
         }
 
         this.queue.push(queueParam);
-        process.nextTick(executeTask);
+        process.nextTick(this.executeTask, this);
 
     };
 
-    executeTask() {
-        if (this.busy) {
+    executeTask(_this) {
+        if (_this.busy || _this.queue.length == 0) {
             return;
         }
-
-        this.busy = true;
-        var queueParam = this.queue.pop();
+        _this.busy = true;
+        var queueParam = _this.queue.pop();
         if (null == queueParam) {
-            this.busy = false;
+            _this.busy = false;
         } else {
 
             queueParam.function(queueParam.params[0], (err, res) => {
-                this.busy = false;
+                _this.busy = false;
                 if (null != queueParam.params[1]) queueParam.params[1](err, res);
-                process.nextTick(executeTask);
-            });
+                process.nextTick(_this.executeTask, _this);
+            }, _this);
 
         }
     }

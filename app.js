@@ -15,6 +15,8 @@ launch = function () {
         console.log(config.getConfig());
         let runnable = require(config.getConfig().basePath + config.getConfig().js);
         runnable.init();
+    }).catch(err => {
+        console.error(err);
     });
 }
 
@@ -25,13 +27,19 @@ function runParallel() {
 
     if (cluster.isMaster) {
 
-        for (let i = 0; i < numCPUs; i++) {
-            cluster.fork();
+        if (numCPUs == 1) {
+            launch();
+
+        } else {
+            for (let i = 0; i < numCPUs; i++) {
+                cluster.fork();
+            }
+
+            cluster.on('exit', (worker, code, signal) => {
+                console.error(`worker ${worker.process.pid} died`);
+            });
         }
 
-        cluster.on('exit', (worker, code, signal) => {
-            console.error(`worker ${worker.process.pid} died`);
-        });
 
     } else {
         console.error("Child process started!");

@@ -22,7 +22,7 @@ let Model = class UserModel extends AbstractModel {
     };
 
     getIdField() {
-        return "id";
+        return "_id";
     };
 
 };
