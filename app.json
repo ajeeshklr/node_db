@@ -9,7 +9,7 @@
     "models": [{
         "name": "user",
         "path": "./model/usermodel.js",
-        "schema": "./schema/schema_usermodel.js"
+        "schema": "./schema/{envName}/schema_usermodel.js"
     }],
     "config": {
         "test": {
@@ -58,7 +58,7 @@
                 "type": "sql",
                 "host": "localhost"
             },
-            "basePath": "./test/",
+            "basePath": "./main/",
             "js": "index.js"
         },
         "sqlite_cipher": {
@@ -81,6 +81,6 @@
         "path": "./app.js"
     },
     "defaults": {
-        "env": "sqlite_cipher"
+        "env": "staging"
     }
 }

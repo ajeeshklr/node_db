@@ -1,8 +1,15 @@
 let AbstractDB = require('../../framework/core/db/abstractdb').AbstractDB;
 let ModelManager = require('../../framework/core/db/modelmanager').ModelManager;
 let sqlparser = require('../utils/sql_parser');
+let DBOP = require('../../framework/core/db/dboperation').DB_OP;
 
 let SqliteCipher = class SqliteCipher extends AbstractDB {
+
+    constructor() {
+        super();
+        this.queue = [];
+        this.busy = false;
+    }
 
     initInternal(config) {
         var _this = this;
@@ -67,140 +74,172 @@ let SqliteCipher = class SqliteCipher extends AbstractDB {
         this._sqlite3 = null;
     }
 
-    insertInternal(model) {
-
-        var _this = this;
-        var db = _this.getClientDb();
-
-        return new Promise((resolve, reject) => {
-            //db.serialize(function () {
-            db.run(
-                sqlparser.convertToInsertQuery(model),
-                function (err) {
-                    if (err) {
-                        console.error(err);
-                        reject(err);
-                    } else {
-                        model.setId(this.lastID);
-                        resolve(model);
-                    }
-                });
-            // });
-
-        });
-
-    }
-
-    deleteInternal(model) {
-
-        var _this = this;
-        return new Promise((resolve, reject) => {
-            var query = sqlparser.convertToDeleteQuery(model);
-            _this.getClientDb().run(query, (err) => {
+    insertInternal(model, callback) {
+        var db = this.getClientDb();
+        db.run(
+            sqlparser.convertToInsertQuery(model),
+            [],
+            function (err) {
                 if (err) {
                     console.error(err);
-                    reject(err);
+                    if (callback) callback(err);
                 } else {
-                    resolve(this.changes);
+                    model.setId(this.lastID);
+                    if (callback) callback(null, model);
                 }
             });
-        });
-
     }
 
-    updateInternal(updateObject) {
-        var _this = this;
-        return new Promise((resolve, reject) => {
+    deleteInternal(model, callback) {
 
-            try {
 
-                let queryString = sqlparser.convertToUpdateQuery(updateObject);
-                if (null == queryString || queryString.length == 0) {
-                    reject("Invalid update object received.");
-                }
+        var query = sqlparser.convertToDeleteQuery(model);
+        this.getClientDb().run(query, [], function (err) {
+            if (err) {
+                console.error(err);
+                if (callback) callback(err);
+            } else {
+                if (callback) callback(null, this.changes);
+            }
+        });
+    }
 
-                _this.getClientDb().query(queryString, (err, result) => {
-                    if (err) {
-                        reject(err);
-                    } else {
-                        if (result.affectedRows > 0) {
-                            resolve(result);
-                        } else {
-                            reject(result);
-                        }
-                    }
-                });
+    updateInternal(updateObject, callback) {
 
-            } catch (error) {
-                reject(error);
+        try {
+            let queryString = sqlparser.convertToUpdateQuery(updateObject);
+            if (null == queryString || queryString.length == 0) {
+                if (callback) callback("Invalid update object received.");
             }
 
-        });
-    }
-
-    findInternal(config) {
-        var _this = this;
-        return new Promise((resolve, reject) => {
-            let query = new DbQuery(config.model, config.query.select, config.query.filter, config.query.clause);
-            let queryString = query.toSelect(); // Convert to query string.
-            query = null;
-
-            this.getClientDb().all(queryString, (err, rows) => {
+            this.getClientDb().run(queryString, [], function (err) {
                 if (err) {
-                    console.error(err);
-                    reject(err);
+                    if (callback) callback(err);
                 } else {
-                    let models = [];
-                    let m = ModelManager.getInstance().get(config.model);
-
-                    for (var i = 0; i < rows.length; i++) {
-                        let instance = new m();
-                        instance.store = this;
-                        let currentInstance = rows[i];
-                        instance.beginInit();
-                        instance.getFields().forEach(field => {
-                            instance.set(field, currentInstance[field]);
-                        })
-                        instance.endInit();
-                        instance.setId(currentInstance[instance.getIdField()]);
-                        models.push(instance);
-
-                    }
-                    resolve(models);
+                    if (callback) callback(null, this.changes);
                 }
             });
 
+        } catch (error) {
+            if (callback) callback(error);
+        }
+    }
+
+    findInternal(config, callback) {
+
+        let query = new DbQuery(config.model, config.query.select, config.query.filter, config.query.clause);
+        let queryString = query.toSelect(); // Convert to query string.
+        query = null;
+
+        this.getClientDb().all(queryString, (err, rows) => {
+            if (err) {
+                console.error(err);
+                if (callback) callback(err);
+            } else {
+                let models = [];
+                let m = ModelManager.getInstance().get(config.model);
+
+                for (var i = 0; i < rows.length; i++) {
+                    let instance = new m();
+                    instance.store = this;
+                    let currentInstance = rows[i];
+                    instance.beginInit();
+                    instance.getFields().forEach(field => {
+                        instance.set(field, currentInstance[field]);
+                    })
+                    instance.endInit();
+                    instance.setId(currentInstance[instance.getIdField()]);
+                    models.push(instance);
+
+                }
+                if (callback) callback(null, models);
+            }
         });
     }
 
-    executeStatement(statement) {
+    executeStatement(statement, callback) {
         var db = this.getClientDb();
 
-        return new Promise((resolve, reject) => {
-            if (typeof statement == "string") {
-                // Perform SQL query against the databse and share result once it is done.
-                db.serialize(function () {
-                    try {
-
-                        db.run(statement, (err, result) => {
-                            if (err) {
-                                reject(err);
-                            } else {
-                                resolve(result);
-                            }
-                        });
-                    } catch (ex) {
-                        console.error(ex);
-                        reject(ex);
-                    }
+        if (typeof statement == "string") {
+            // Perform SQL query against the databse and share result once it is done.
+            try {
+                db.run(statement, [], function (err) {
+                    if (callback) callback(err, this);
                 });
-
-
-            } else {
-                reject("Invalid query statement. Exptected string, receive " + (typeof statement));
+            } catch (ex) {
+                console.error(ex);
+                if (callback) callback(ex);
             }
-        });
+        }
 
+    }
+
+    execute(dboperation, callback) {
+
+        if (null == dboperation ||
+            null == dboperation.record) {
+            console.error("Invalid dboperation while performing execute");
+            if (callback) {
+                callback(400, 'Invalid parameters received.');
+                return;
+            }
+        }
+
+        if (this.state != AbstractDB.DB_STATES.DB_OPEN ||
+            null == this._clientdb) {
+            if (callback) {
+                callback(500, 'Database is not open or databse is not initialized.');
+                return;
+            }
+        }
+
+        let queueParam = {
+            "function": function (dboperation, callback, _this) {
+                switch (dboperation.operation) {
+                    case DBOP.DB_OP_INSERT:
+                        _this.insert(dboperation.record, callback);
+                        break;
+                    case DBOP.DB_OP_DELETE:
+                        _this.delete(dboperation.record, callback);
+                        break;
+                    case DBOP.DB_OP_READ:
+                        _this.read(dboperation.record, callback);
+                        break;
+                    case DBOP.DB_OP_UPDATE:
+                        _this.update(dboperation.record, callback);
+                        break;
+                    case DBOP.DB_OP_CREATE_TABLE:
+                        _this.createTable(dboperation.record, callback);
+                        break;
+                    default:
+                        break;
+                }
+            },
+            "params": [dboperation, callback]
+        }
+
+        this.queue.push(queueParam);
+        process.nextTick(this.executeTask, this);
+
+    };
+
+    executeTask(_this) {
+        if (_this.busy || _this.queue.length == 0) {
+            return;
+        }
+        _this.busy = true;
+        var queueParam = _this.queue.pop();
+        if (null == queueParam) {
+            _this.busy = false;
+        } else {
+
+            queueParam.function(queueParam.params[0], (err, res) => {
+                _this.busy = false;
+                if (null != queueParam.params[1]) queueParam.params[1](err, res);
+                process.nextTick(_this.executeTask, _this);
+            }, _this);
+
+        }
     }
 
 }

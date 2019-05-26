@@ -370,10 +370,6 @@ let AbstractDB = class AbstractDB {
             if (callback) {
                 callback(400, 'Invalid parameters received.');
                 return;
-            } else {
-                return new Promise((resolve, reject) => {
-                    reject('Invalid parameters recived.');
-                });
             }
         }
 
@@ -382,133 +378,68 @@ let AbstractDB = class AbstractDB {
             if (callback) {
                 callback(500, 'Database is not open or databse is not initialized.');
                 return;
-            } else {
-                return new Promise((resolve, reject) => {
-                    reject('IDatabase is not open or databse is not initialized.');
-                });
             }
         }
 
-        let func = null;
-
         switch (dboperation.operation) {
             case DBOP.DB_OP_INSERT:
-                func = this.insert(dboperation.record, callback);
+                this.insert(dboperation.record, callback);
                 break;
             case DBOP.DB_OP_DELETE:
-                func = this.delete(dboperation.record, callback);
+                this.delete(dboperation.record, callback);
                 break;
             case DBOP.DB_OP_READ:
-                func = this.read(dboperation.record, callback);
+                this.read(dboperation.record, callback);
                 break;
             case DBOP.DB_OP_UPDATE:
-                func = this.update(dboperation.record, callback);
+                this.update(dboperation.record, callback);
                 break;
             case DBOP.DB_OP_CREATE_TABLE:
-                func = this.createTable(dboperation.record, callback);
+                this.createTable(dboperation.record, callback);
                 break;
             default:
                 break;
         }
-
-        if (!callback) {
-            return new Promise((resolve, reject) => {
-                func.then(res => resolve(res))
-                    .catch(err => reject(err));
-            });
-        }
-
     };
 
     insert(record, callback) {
 
-        var _this = this;
-        let promise = new Promise(async (resolve, reject) => {
-
-            if ((record instanceof AbstractModel) == false) {
-                reject("Invalid AbstractModel object received.");
-            } else {
-                try {
-                    var res = await _this.insertInternal(record);
-                    resolve(res);
-                } catch (ex) {
-                    console.error(ex);
-                    reject(ex);
-                }
-            }
-        });
-
-        if (!callback) {
-            return promise;
+        if ((record instanceof AbstractModel) == false) {
+            if (callback) callback("Invalid AbstractModel object received.");
         } else {
-            promise.then(res => callback(null, res))
-                .catch(err => callback(err));
+            try {
+                this.insertInternal(record, callback);
+            } catch (ex) {
+                if (callback) callback(ex);
+            }
         }
     };
 
-    insertInternal(record) {
-        return new Promise((resolve, reject) => {
-            reject("API not implemented.")
-        });
-    };
+    insertInternal(record, callback) {};
 
-    deleteInternal(record) {
-        return new Promise((resolve, reject) => {
-            reject("API not implemented.");
-        });
-    };
+    deleteInternal(record, callback) {};
 
-    updateInternal(record) {
-        return new Promise((resolve, reject) => {
-            reject("API not implemented.");
-        });
-    }
+    updateInternal(record, callback) {}
 
-    findInternal(config) {
-        return new Promise((resolve, reject) => {
-            reject("API not implemented.");
-        });
-    };
+    findInternal(config, callback) {};
 
-    async delete(record, callback) {
-        var _this = this;
-        let p = new Promise((resolve, reject) => {
-            try {
-                var res = _this.deleteInternal(record);
-                resolve(res);
-            } catch (ex) {
-                console.error(ex);
-                reject(ex);
-            }
-        });
-
-        if (callback) {
-            p.then(res => callback(null, res))
-                .catch(err => callback(err));
-        } else {
-            return p;
+    delete(record, callback) {
+        try {
+            this.deleteInternal(record, callback);
+        } catch (ex) {
+            console.error(ex);
+            if (callback) callback(ex);
         }
     };
 
     update(record, callback) {
-        var _this = this;
-
-        let p = new Promise(async (resolve, reject) => {
-            try {
-                var res = await _this.updateInternal(record);
-                resolve(res);
-            } catch (ex) {
-                console.error(ex);
-                reject(ex);
-            }
-        });
-
-        if (callback) {
-            p.then(res => callback(null, res))
-                .catch(err => callback(err));
-        } else {
-            return p;
+        try {
+            this.updateInternal(record, callback);
+        } catch (ex) {
+            console.error(ex);
+            if (callback) callback(ex);
         }
+
     };
 
     /**
@@ -516,17 +447,10 @@ let AbstractDB = class AbstractDB {
      * @param {AbstractModel} record 
      * @param {function} callback 
      */
-    async read(record, callback) {
+    read(record, callback) {
 
         if (record) {
-            return await this.find(record, callback);
-        }
-        if (callback) {
-            callback("No config is provided to the read function.");
-        } else {
-            return new Promise((_, reject) => {
-                reject("No  config is provided to the read function.");
-            });
+            this.find(record, callback);
         }
     };
 
@@ -535,29 +459,14 @@ let AbstractDB = class AbstractDB {
      * @param {AbstractModel} record 
      * @param {function} callback 
      */
-    createTable(record, callback) {
-        if (callback) {
-            callback();
-        }
-    };
-
+    createTable(record, callback) {};
     /**
      * find method.
      * @param {JSON} config 
      * @param {function} callback 
      */
-    async find(config, callback) {
-        if (callback) {
-            try {
-                var res = await this.findInternal(config);
-                callback(null, res);
-            } catch (ex) {
-                console.error(ex);
-                callback(ex);
-            }
-        } else {
-            return this.findInternal(config); // Return a promise instead.
-        }
+    find(config, callback) {
+        this.findInternal(config, callback);
     };
 
     /**
@@ -575,9 +484,7 @@ let AbstractDB = class AbstractDB {
      * 
      * @param {String or Object} statement 
      */
-    executeStatement(statement) {
-
-    }
+    executeStatement(statement, callback) {}
 
     getDatabaseType() {
         return this.config.type != null && typeof (this.config.type) == 'string' ? this.config.type : '';

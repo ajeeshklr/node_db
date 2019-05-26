@@ -14,7 +14,7 @@ Container.init = function (config) {
                         if (config.getModelConfig() && config.getModelConfig().length > 0) {
                             console.error("Initializing model manager configurations from config.js");
                             const ModelManager = require("./core/db/modelmanager");
-                            ModelManager.getInstance().configure(config.getModelConfig());
+                            ModelManager.getInstance().configure(config.getModelConfig(), config);
 
                             if (dbmanager.getInstance().getDatabase().getDatabaseType() == 'sql') {
                                 // Execute schema against the database, if needed.

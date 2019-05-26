@@ -19,14 +19,14 @@ function handle(req, res) {
 function startBench() {
 
     var substr = fileContent.substr(0, fileContent.length / 4);
-    const url = 'http://localhost:' + 6000
+    const url = 'http://localhost:' + 5000
 
     var random = randomWords(10);
 
     autocannon({
         url: url,
-        connections: 10,
-        pipelining: 10,
+        connections: 100,
+        pipelining: 20,
         duration: 10,
         headers: {
             // by default we add an auth token to all requests

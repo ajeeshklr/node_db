@@ -40,43 +40,20 @@ let Store = class Store {
 
     add(model, callback) {
 
-        var _this = this;
+        if (model instanceof AbstractModel) {
+            if (model.modelName() == this.modelName()) {
 
-        let p = new Promise((resolve, reject) => {
-            if (model instanceof AbstractModel) {
-                if (model.modelName() == _this.modelName()) {
+                var operation = new DBOperation(DB_OP.DB_OP_INSERT, model);
+                this.execute(operation, callback);
+                operation = null;
 
-                    // Let's use generators here as we are going to use promises.
-                    co(function* () {
-
-                        var operation = new DBOperation(DB_OP.DB_OP_INSERT, model);
-                        let res = yield _this.execute(operation);
-                        operation = null;
-
-                        // Once it is done, fire an event.
-                        //  this.fire('add', model); // Model is updated with ID and other fields, which are required.
-                        // TODO - Update model with id and other needed fields.
-                        resolve(res);
-
-
-                    }).catch(err => {
-                        console.error(err);
-                        reject(err);
-
-                    });
-                } else {
-                    reject("Expected " + _this.modelName() + ". But received " + model.modelName());
-                }
             } else {
-                reject("model is not instance of AbstractModel");
+                if (callback)
+                    callback("Invalid model instance. Model name doesn't match!");
             }
-        });
-
-        if (callback) {
-            p.then(res => callback(null, res))
-                .catch(err => callback(err));
         } else {
-            return p;
+            if (callback)
+                callback("Model is not instance of AbstractModel");
         }
 
     };
@@ -93,26 +70,10 @@ let Store = class Store {
         if (!this.database) {
             if (callback) {
                 callback(400, 'Invalid database or database is not initialized.');
-            } else {
-                return new Promise((resolve, reject) => {
-                    reject('Invalid database or databse is not initialized.');
-                });
             }
         } else {
             if (this.database.state != AbstractDB.DB_STATES.DB_INVALID) {
-                if (callback) {
-                    this.database.execute(dboperation, callback);
-                } else {
-                    var _this = this;
-                    return new Promise((resolve, reject) => {
-                        _this.database.execute(dboperation)
-                            .then(res => {
-                                resolve(res);
-                            }).catch(err => {
-                                reject(err);
-                            });
-                    }); // return new Promise
-                } // else 
+                this.database.execute(dboperation, callback);
             } // this.database.state != AbstractDB.DB_STATES.DB_INVALID
         } // else
     }; // execute
@@ -195,104 +156,78 @@ let Store = class Store {
      */
     update(model, criteria, callback) {
 
-        var _this = this;
+        if (!criteria) {
+            criteria = {
+                "collection": this.modelName()
+            }
+        };
 
-        let p = new Promise((resolve, reject) => {
+        let updateObject = {};
+        updateObject["criteria"] = criteria;
 
-            if (!criteria) {
-                criteria = {
-                    "collection": _this.modelName()
-                }
-            };
+        if (model instanceof AbstractModel) {
+            if (model.modelName() == this.modelName()) {
+                // Set the table / collection name.
+                updateObject["collection"] = this.modelName() || criteria.collection;
 
-            let updateObject = {};
-            updateObject["criteria"] = criteria;
-
-            if (model instanceof AbstractModel) {
-                if (model.modelName() == _this.modelName()) {
-                    // Set the table / collection name.
-                    updateObject["collection"] = _this.modelName() || criteria.collection;
-
-                    if (model.getId()) {
-                        let filter = updateObject.criteria.filter || {};
-                        if (!filter[model.getIdField()]) {
-                            filter[model.getIdField()] = model.getId();
-                            updateObject.criteria.filter = filter;
-                        }
+                if (model.getId()) {
+                    let filter = updateObject.criteria.filter || {};
+                    if (!filter[model.getIdField()]) {
+                        filter[model.getIdField()] = model.getId();
+                        updateObject.criteria.filter = filter;
                     }
+                }
 
-                } // model name check
-            } // model instanceof
-            else { // It is not an object, it could be a update object. Client shall check for valid criteria in this case.
-                // Criteria should have table name as one of the valid parameter, otherwise, this will fail.
-                if (criteria && Object.keys(criteria).indexOf("collection") >= 0) {
-                    updateObject["collection"] = criteria["collection"];
+            } // model name check
+        } // model instanceof
+        else { // It is not an object, it could be a update object. Client shall check for valid criteria in this case.
+            // Criteria should have table name as one of the valid parameter, otherwise, this will fail.
+            if (criteria && Object.keys(criteria).indexOf("collection") >= 0) {
+                updateObject["collection"] = criteria["collection"];
+            } else {
+                if (callback) {
+                    callback("Invalid criteria. Collection details are not available in criteria.");
                 } else {
                     throw new Error("Invalid criteria. Collection details are not available in criteria.");
                 }
+
             }
+        }
 
-            updateObject["model"] = model; // Set the model or object for updation.
+        updateObject["model"] = model; // Set the model or object for updation.
 
-
-            // Let's use generators here as we are going to use promises.
-            co(function* () {
-
-                var operation = new DBOperation(DB_OP.DB_OP_UPDATE, updateObject);
-                let pr = _this.execute(operation, callback);
-                if (pr) {
-                    pr.then(res => {
-
-                        if (updateObject.model instanceof AbstractModel && updateObject.model.getId()) {
-                            resolve([updateObject.model]);
-                        } else {
-                            // Let's convert the document to a valid model instance.
-                            // All the documents are updated now. Let's use the same query and find all the documents, which are updated.
-                            let modifiedRecords = _this.find({
-                                "filter": model instanceof AbstractModel ?
-                                    updateObject.model.getUpdatorConfig() : updateObject.model.set
+        var operation = new DBOperation(DB_OP.DB_OP_UPDATE, updateObject);
+        this.execute(operation, (err, res) => {
+            if (err) {
+                callback(err);
+            } else {
+                if (updateObject.model instanceof AbstractModel &&
+                    updateObject.model.getId()) {
+                    if (callback)
+                        callback(null, [updateObject.model]);
+                } else {
+                    // Let's convert the document to a valid model instance.
+                    // All the documents are updated now. Let's use the same query and find all the documents, which are updated.
+                    this.find({
+                        "filter": model instanceof AbstractModel ?
+                            updateObject.model.getUpdatorConfig() : updateObject.model.set
+                    }, (e, result) => {
+                        let model = ModelManager.getInstance().get(this.modelName());
+                        if (null != model) {
+                            result.forEach(element => {
+                                var m = new model();
+                                m.store = this;
+                                m.init(element.config.fields);
+                                m.setId(element[m.getIdField()]);
+                                models.push(m);
                             });
-                            let models = [];
-                            if (modifiedRecords) {
-                                modifiedRecords.then(result => {
-
-                                    let model = ModelManager.getInstance().get(_this.modelName());
-                                    if (null != model) {
-                                        result.forEach(element => {
-                                            var m = new model();
-                                            m.store = _this;
-                                            m.init(element.config.fields);
-                                            m.setId(element[m.getIdField()]);
-                                            models.push(m);
-                                        });
-                                    }
-
-                                    resolve(models);
-
-                                }).catch(error => {
-                                    console.log(error);
-                                    reject(err);
-
-                                })
-                            }
                         }
-
-                    }).catch(err => {
-                        reject(err);
+                        callback(null, result);
                     });
                 }
-            }).catch(err => {
-                console.log(err);
-                callback(err);
-            });
+            }
+
         });
-
-        // As callback is passed to the dbmanager function, once the operation is successful inside dbmanager, the callback shall be called.
-        // Return promise otherwise.
-
-        if (!callback) {
-            return p;
-        }
     };
 
 
@@ -371,45 +306,20 @@ let Store = class Store {
 
         // It is possible to provide a null criteria if user want to read entire store.
         if (criteria && typeof (criteria) != "object") {
-            throw new Error("Invalid criteria specified.");
+            if (callback) {
+                callback("Invalid criteria specified.");
+            } else
+                throw new Error("Invalid criteria specified.");
         }
 
-        var _this = this;
-        let p = new Promise((resolve, reject) => {
+        // Actual business logic to perform find operation.
+        var config = {
+            'model': _this.modelName(),
+            'query': criteria
+        };
 
-            // Actual business logic to perform find operation.
-            var config = {
-                'model': _this.modelName(),
-                'query': criteria
-            };
-
-            var operation = new DBOperation(DB_OP.DB_OP_READ, config);
-            let _readp = _this.execute(operation);
-            // _readp is a promise, so let's wait for th promise to return.
-            _readp.then(res => {
-                resolve(res);
-
-            }).catch(err => {
-                reject(err);
-            });
-        });
-
-        if (callback) {
-            p.then(res => {
-                callback(null, res);
-                if (fireEvents) {
-                    _this.fire("find", res);
-                }
-
-            }).catch(err => {
-                callback(err);
-                if (fireEvents) {
-                    _this.fire("find", null, err);
-                }
-            });
-        } else {
-            return p;
-        }
+        var operation = new DBOperation(DB_OP.DB_OP_READ, config);
+        this.execute(operation, callback);
 
     };
 

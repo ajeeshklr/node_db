@@ -113,213 +113,201 @@ let MongoDB = class MongoDB extends AbstractDB {
         });
     };
 
-    insertInternal(record) {
-        var _this = this;
-        return new Promise(async (resolve, reject) => {
-            try {
-                var res = await _this.getClientDb().collection(record.modelName()).insertOne(record.toJSON());
-                if (res.insertedCount == 1 && res.result.ok) {
-                    if (res.ops && res.ops.length > 0) {
-                        resolve(res.ops);
-                    } else {
-                        resolve(res);
-                    }
+    async insertInternal(record, callback) {
+        try {
+            var res = await this.getClientDb().collection(record.modelName()).insertOne(record.toJSON());
+            if (callback) {
+                if (res.insertedCount == 1 &&
+                    res.result.ok &&
+                    res.ops &&
+                    res.ops.length) {
+                    callback(null, res.ops);
                 } else {
-                    reject(res);
+                    callback(null, res);
                 }
-            } catch (ex) {
-                console.error(ex);
-                reject(ex);
             }
-        });
+
+        } catch (ex) {
+            console.error(ex);
+            if (callback) callback(ex);
+        }
     };
 
-    deleteInternal(model) {
-
-        return new Promise((resolve, reject) => {
-            reject("Not implemented");
-        });
+    deleteInternal(model, callback) {
 
     };
 
-    updateInternal(updateObject) {
+    async updateInternal(updateObject, callback) {
 
-        var _this = this;
-        return new Promise(async (resolve, reject) => {
-            // model should have the following fields.
-            if (updateObject && updateObject.collection) {
+        // model should have the following fields.
+        if (updateObject && updateObject.collection) {
 
-                // Check to see if the record object or AbstractModel instance is valid.
-                if (!updateObject.model || !updateObject.criteria) {
-                    reject("Invalid model or criteria received in updateObject.");
-                }
+            // Check to see if the record object or AbstractModel instance is valid.
+            if (!updateObject.model || !updateObject.criteria) {
+                if (callback) callback("Invalid model or criteria received in updateObject.");
+                return;
+            }
 
-                let update = {};
+            let update = {};
 
-                if (updateObject.model instanceof AbstractModel) {
-                    update["set"] = updateObject.model.getUpdatorConfig();
-                } else if (typeof (updateObject.model) == "object") {
-                    update["set"] = updateObject.model.set;
-                }
-
-
-                // Criteria might have the following.
-                // "filter" - for any filters
-                // clause for any clauses.
-
-                Object.keys(updateObject.criteria).forEach(element => {
-                    switch (element) {
-                        case "filter":
-                            update["filter"] = updateObject.criteria.filter;
-                            break;
-                        case "clause":
-                            update["clause"] = updateObject.criteria.clause;
-                            break;
-                    }
-                });
-
-                try {
-                    let mongoQuery = new MongoQuery(updateObject.collection, update.set, update.filter, update.clause);
-                    let queryObject = mongoQuery.toUpdate(); // Convert to query object.
-
-                    var writeresult = await _this.getClientDb().collection(updateObject.collection)
-                        .update(queryObject.filter,
-                            queryObject.update,
-                            queryObject.clause);
-
-                    resolve(writeresult);
-                    queryObject = null;
-                    mongoQuery = null;
-
-                } catch (error) {
-                    console.error(error);
-                    reject(error);
-                }
-
-            } else {
-                reject("Invalid updateObject received.");
+            if (updateObject.model instanceof AbstractModel) {
+                update["set"] = updateObject.model.getUpdatorConfig();
+            } else if (typeof (updateObject.model) == "object") {
+                update["set"] = updateObject.model.set;
             }
 
 
-        });
+            // Criteria might have the following.
+            // "filter" - for any filters
+            // clause for any clauses.
+
+            Object.keys(updateObject.criteria).forEach(element => {
+                switch (element) {
+                    case "filter":
+                        update["filter"] = updateObject.criteria.filter;
+                        break;
+                    case "clause":
+                        update["clause"] = updateObject.criteria.clause;
+                        break;
+                }
+            });
+
+            try {
+                let mongoQuery = new MongoQuery(updateObject.collection,
+                    update.set, update.filter, update.clause);
+                let queryObject = mongoQuery.toUpdate(); // Convert to query object.
+
+                var writeresult = await this.getClientDb().collection(updateObject.collection)
+                    .update(queryObject.filter,
+                        queryObject.update,
+                        queryObject.clause);
+
+                queryObject = null;
+                mongoQuery = null;
+                if (callback) callback(null, writeresult);
+
+
+            } catch (error) {
+                console.error(error);
+                if (callback) callback(error);
+            }
+
+        } else {
+            if (callback) callback("Invalid updateObject received.");
+        }
     };
 
-    findInternal(config) {
+    async findInternal(config, callback) {
 
-        var _this = this;
-
-        return new Promise(async (resolve, reject) => {
-
-            /**
-             * Valid configs are as follows
-             * {
-             *  'model' : string,   // Name of the collection used in mongo db.
-             *'query': {
-                 select: {
-                     "fields": ["field1,"
-                         field2 "..."
-                         fieldn
+        /**
+         * Valid configs are as follows
+         * {
+         *  'model' : string,   // Name of the collection used in mongo db.
+         *'query': {
+             select: {
+                 "fields": ["field1,"
+                     field2 "..."
+                     fieldn
+                 ]
+             }
+             clause: [{
+                     "sort": [{
+                             "field": "field1",
+                             "order": "asc"
+                         },
+                         {
+                             "field": "fieldn",
+                             "order": "desc"
+                         }
                      ]
+                 },
+                 {
+                     "limit": "100" // Or a number field can be used.
+
                  }
-                 clause: [{
-                         "sort": [{
-                                 "field": "field1",
-                                 "order": "asc"
+             ]
+             filter: {
+                 "or": [{
+                         "and": [{
+                                 __op: "==",
+                                 "field1": "value1"
                              },
                              {
-                                 "field": "fieldn",
-                                 "order": "desc"
+                                 __op: "!=",
+                                 "field2": "value2"
+                             },
+                             {
+                                 __op: "<",
+                                 "field3": "value3"
+                             },
+                             {
+                                 $a: ">",
+                                 "field4": "value4"
                              }
                          ]
                      },
                      {
-                         "limit": "100" // Or a number field can be used.
-
-                     }
-                 ]
-                 filter: {
-                     "or": [{
+                         "or": {
                              "and": [{
                                      __op: "==",
-                                     "field1": "value1"
+                                     "field5": "value5"
                                  },
                                  {
                                      __op: "!=",
-                                     "field2": "value2"
-                                 },
-                                 {
-                                     __op: "<",
-                                     "field3": "value3"
-                                 },
-                                 {
-                                     $a: ">",
-                                     "field4": "value4"
+                                     "field6": "value6"
                                  }
-                             ]
-                         },
-                         {
-                             "or": {
-                                 "and": [{
-                                         __op: "==",
-                                         "field5": "value5"
-                                     },
-                                     {
-                                         __op: "!=",
-                                         "field6": "value6"
-                                     }
-                                 ],
-                                 "<": {
-                                     "field1": "100"
-                                 }
+                             ],
+                             "<": {
+                                 "field1": "100"
                              }
                          }
-                     ]
-                 }
-
+                     }
+                 ]
              }
-             * }
-             */
 
-            try {
+         }
+         * }
+         */
 
-                let mongoQuery = new MongoQuery(config.model,
-                    config.query.select,
-                    config.query.filter,
-                    config.query.clause);
+        try {
 
-                let queryObject = mongoQuery.toSelect(); // Convert to query object.
+            let mongoQuery = new MongoQuery(config.model,
+                config.query.select,
+                config.query.filter,
+                config.query.clause);
 
-                let queryString = "";
-                Object.keys(queryObject).forEach(key => {
-                    if (queryString.length > 0) {
-                        queryString += ",";
-                    }
-                    queryString += "'" + key + "':" + queryObject[key];
-                });
+            let queryObject = mongoQuery.toSelect(); // Convert to query object.
 
-                queryString = "{" + queryString + "}";
-                var BSON = require('bson');
-                var bson = new BSON();
-                var data = bson.deserialize(bson.serialize(queryObject));
-
-                let testData = {
-                    'config.fields.age': {
-                        $eq: 30
-                    }
-                };
-
-                var findCursor = _this.getClientDb().collection(config.model).find(queryObject);
-
-                if (findCursor) {
-                    var val = await findCursor.toArray();
-                    resolve(val);
-                } else {
-                    reject("Could not retrieve resources.");
+            let queryString = "";
+            Object.keys(queryObject).forEach(key => {
+                if (queryString.length > 0) {
+                    queryString += ",";
                 }
-            } catch (error) {
-                reject(error);
+                queryString += "'" + key + "':" + queryObject[key];
+            });
+
+            queryString = "{" + queryString + "}";
+            // var BSON = require('bson');
+            // var bson = new BSON();
+            // var data = bson.deserialize(bson.serialize(queryObject));
+
+            // let testData = {
+            //     'config.fields.age': {
+            //         $eq: 30
+            //     }
+            // };
+
+            var findCursor = _this.getClientDb().collection(config.model).find(queryObject);
+
+            if (findCursor) {
+                var val = await findCursor.toArray();
+                if (callback) callback(null, val);
+            } else {
+                if (callback) callback("Could not retrieve cursor.");
             }
-        });
+        } catch (error) {
+            if (callback) callback(error);
+        }
     };
 };
 

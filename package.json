@@ -1,0 +1,27 @@
+{
+  "name": "node_db",
+  "version": "1.0.0",
+  "description": "The framework code run server in a cluster. This support basic crud operations for few sql and no-sql databases.",
+  "main": "app.js",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "dependencies": {
+    "async": "^2.6.1",
+    "autocannon": "^3.2.0",
+    "eslint": "^4.19.1",
+    "mongodb": "^3.1.13",
+    "mongodb-core": "^3.1.11",
+    "mysql": "^2.16.0",
+    "random-words": "^1.1.0",
+    "siege": "^0.2.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

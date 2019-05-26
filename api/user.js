@@ -33,16 +33,14 @@ container.register = function (data, callback) {
    let m = manager.get('user');
    let user = new m(data.payload, StoreManager.getInstance().get('user'));
 
-   user.save().then(res => {
-      if (callback) {
-         callback(200);
+   user.save((err, val) => {
+      if (err) {
+         // console.log(err);
       }
-   }).catch((err) => {
-      console.error(err);
-      callback(500)
-   });
-   // Perform sanity checks once.
+      callback(err, val);
+      // console.log(user);
 
+   });
 
 };
 
