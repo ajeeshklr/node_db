@@ -5,8 +5,8 @@
 const environments = {}
 
 environments.staging = {
-    'httpPort': 5000,
-    'httpsPort': 5001,
+    'httpPort': 80,
+    'httpsPort': 443,
     'envName': 'staging',
     'hashingSecret': 'this is a staging secret',
     'templateGlobals': {

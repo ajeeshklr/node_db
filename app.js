@@ -12,11 +12,15 @@ launch = function () {
     let framework = require('./framework/main');
     framework.init(config).then((res) => {
 
+        console.log("Database framework initialized.");
+
+    }).catch(err => {
+        console.log("Database framework initialization failed.");
+        console.error(err);
+    }).finally(() => {
         console.log(config.getConfig());
         let runnable = require(config.getConfig().basePath + config.getConfig().js);
         runnable.init();
-    }).catch(err => {
-        console.error(err);
     });
 }
 
