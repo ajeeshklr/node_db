@@ -73,6 +73,53 @@ class Queue {
 }
 
 
+testBuffer = function () {
+    let buff1 = {
+        "imageData": {
+            "type": "Buffer",
+            "data": [
+                12, 13, 14, 15, 16
+            ]
+        }
+    };
+
+    let buff2 = {
+        "imageData": {
+            "type": "Buffer",
+            "data": {
+                "type": "Buffer",
+                "data": [
+                    12, 13, 14, 15, 16
+                ]
+            }
+        }
+    };
+
+
+    console.log('\x1b[32m%s\x1b[0m', "Buff1 : " + JSON.stringify(buff1));
+    console.log('\x1b[32m%s\x1b[0m', "Buff2 : " + JSON.stringify(buff2));
+
+    var buffData1 = Buffer.from(buff1.imageData['data']);
+    var buffData2 = Buffer.from(buff2.imageData['data']);
+    console.log('\x1b[32m%s\x1b[0m', "Buffer.from(buff1.imageData['data']) := \r\n" + JSON.stringify(buffData1));
+    console.log('\x1b[32m%s\x1b[0m', "Buffer.from(buff2.imageData['data']) := \r\n" + JSON.stringify(buffData2));
+
+    console.log('\x1b[31m%s\x1b[0m', "buffData1 is " + (buffData1.compare(buffData2) == 0 ? " equal to " : " not equal to ") + "buffData2");
+
+
+    var data = [
+        12, 13, 14, 15, 16
+    ];
+
+    var bfdata = Buffer.from(data);
+    var jsonData = bfdata.toJSON();
+
+    console.log('\x1b[32m%s\x1b[0m', "Buffer.from(data) := \r\n" + JSON.stringify(jsonData));
+
+    console.log('\x1b[31m%s\x1b[0m', "bfdata is " + (bfdata.compare(buffData1) == 0 ? " equal to " : " not equal to ") + "buffData1");
+    console.log('\x1b[31m%s\x1b[0m', "bfdata is " + (bfdata.compare(buffData2) == 0 ? " equal to " : " not equal to ") + "buffData2");
+}
+
 
 function _executeTest(modules, index, callback) {
 
