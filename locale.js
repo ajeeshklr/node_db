@@ -14,17 +14,23 @@ const strings = {};
 
 //#region String literals for default pages.
 
-strings.head_title_default = 'MeshChat - Admin Page'; // Head title, this could be used from different places.
-strings.head_description_default = 'Admin page for MeshChat application.';
+strings.head_title_default = 'iMeshConnect'; // Head title, this could be used from different places.
+strings.head_description_default = 'iMeshConnect Home Page';
 strings.head_keywords_default = '';
-
+strings.home_page = "Home";
+strings.product_page = "Products";
+strings.services_page = "Services";
+strings.about_us = "About us";
+strings.contact_us = "Contact us";
 //#endregion
 
 //#region Literals related to contact page
-strings.contact_title = 'MeshChat - Contact us';
+strings.contact_title = 'iMeshConnect - Contact us';
 strings.contact_subtitle = 'This page is used for internal use only. ';
 strings.contact_thanks = "Thanks for showing interest. We shall get back to you soon.";
 strings.contact_display = "none";
+
+strings.footer_rights = "Copyright 2019 iMeshConnect Solutions Private Ltd. All rights reserved";
 
 //#endregion
 

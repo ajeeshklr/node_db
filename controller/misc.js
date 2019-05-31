@@ -21,8 +21,12 @@ container.contact = function (data, callback) {
         'contact.title': locale.strings.contact_title,
         'contact.subtitle': locale.strings.contact_subtitle,
         'contact.display': data.method == 'post' ? 'block' : 'none',
-        'contact.thanks': locale.strings.contact_thanks
+        'contact.thanks': locale.strings.contact_thanks,
+        'footer': locale.strings.footer_rights
     };
+
+    helpers.fetchGlobalHeaderInformation(templateData);
+
     if (data.method == 'get' || data.method == 'post') {
 
         // perform post related operation incase if it is post.

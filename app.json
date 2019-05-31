@@ -77,6 +77,11 @@
         }
 
     },
+    "templateGlobals": {
+        "appName": "Official Website",
+        "companyName": "iMeshConnect Solutions Private Ltd.",
+        "yearCreated": "2019"
+    },
     "js": {
         "path": "./app.js"
     },

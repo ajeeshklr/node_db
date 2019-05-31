@@ -4,64 +4,40 @@
 
 const environments = {}
 
+
+
 environments.staging = {
     'httpPort': 80,
     'httpsPort': 443,
     'envName': 'staging',
-    'hashingSecret': 'this is a staging secret',
-    'templateGlobals': {
-        'appName': 'MeshChat - Admin Page.',
-        'companyName': 'iMeshConnect Solutions Private Ltd.',
-        'yearCreated': '2018'
-    }
+    'hashingSecret': 'this is a staging secret'
 };
 
 environments.production = {
     'httpPort': 5500,
     'httpsPort': 5501,
     'envName': 'production',
-    'hashingSecret': 'this is a production secret',
-    'templateGlobals': {
-        'appName': 'MeshChat - Admin Page.',
-        'companyName': 'iMeshConnect Solutions Private Ltd.',
-        'yearCreated': '2018'
-    }
+    'hashingSecret': 'this is a production secret'
 };
 
 environments.test = {
     'httpPort': 6000,
     'httpsPort': 6001,
     'envName': 'test',
-    'hashingSecret': 'this is a testing secret',
-    'templateGlobals': {
-        'appName': 'MeshChat - Admin Page.',
-        'companyName': 'iMeshConnect Solutions Private Ltd.',
-        'yearCreated': '2018'
-    }
+    'hashingSecret': 'this is a testing secret'
 };
 
 environments.mysql = {
     'httpPort': 6000,
     'httpsPort': 6001,
     'envName': 'mysql',
-    'hashingSecret': 'this is a testing secret',
-    'templateGlobals': {
-        'appName': 'MeshChat - Admin Page.',
-        'companyName': 'iMeshConnect Solutions Private Ltd.',
-        'yearCreated': '2018'
-    }
+    'hashingSecret': 'this is a testing secret'
 };
 
 environments.sqlite_cipher = {
     'httpPort': 6000,
     'httpsPort': 6001,
-    'envName': 'sqlite_cipher',
-    'hashingSecret': 'this is sqlite-cipher secret',
-    'templateGlobals': {
-        'appName': 'MeshChat - Admin Page.',
-        'companyName': 'iMeshConnect Solutions Private Ltd.',
-        'yearCreated': '2018'
-    }
+    'envName': 'sqlite_cipher'
 };
 
 

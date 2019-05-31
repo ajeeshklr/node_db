@@ -11,6 +11,18 @@
 ._404 {
     text-align: center;
     width: 100%;
+    font-size: 24;
+    font-weight: 500;
+    line-height: 24px;
+}
+
+.back_button {
+    font-size: 24;
+    border-radius: 10px;
+    width: 100px;
+    height: 40px;
+    border-style: ridge;
+    background-color: rgba(211, 211, 211, 0.966)
 }
 
 .contact {
